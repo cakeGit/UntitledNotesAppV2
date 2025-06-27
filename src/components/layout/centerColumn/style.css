@@ -1,0 +1,6 @@
+.center_column {
+    padding: 5vh min(20vw, 200px);
+    width: 100vw;
+    min-height: 100vh;
+    box-sizing: border-box;
+}

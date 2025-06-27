@@ -1,0 +1,6 @@
+.page_block_dragger {
+    background-color: rgb(180, 180, 180);
+    border-radius: 5px;
+    width: max-content;
+    cursor: grab;
+}
