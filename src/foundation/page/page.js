@@ -14,7 +14,10 @@ export class Page {
     }
 
     revalidateSubcontainers() {
-        
+        this.subcontainers = this.subcontainers.filter((container, index) => {
+            if (!container.ref || !container.ref.current) return false;
+            return this.subcontainers.findIndex(c => c.ref && c.ref.current === container.ref.current) === index;
+        });
     }
 
     getTargetableContainers() {
