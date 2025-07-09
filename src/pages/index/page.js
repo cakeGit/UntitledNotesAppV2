@@ -1,5 +1,5 @@
 import { PageViewComponent } from "../../components/app/pageview/component";
-import { AppSideBar } from "../../components/app/sidebar/component";
+import { AppSideBar } from "../../components/app/sidebar-new/component";
 import { CenterColumn } from "../../components/layout/centerColumn/component";
 import "./App.css";
 
@@ -7,10 +7,10 @@ function BuildPage() {
   return (
     <div>
       <AppSideBar />
-      <CenterColumn>
+      {/* <CenterColumn>
         <h1>UntitledNotesApp</h1>
-        <PageViewComponent pageUuid=""></PageViewComponent>
-      </CenterColumn>
+        {/* <PageViewComponent pageUuid=""></PageViewComponent> }
+      </CenterColumn> */}
     </div>
   );
 }

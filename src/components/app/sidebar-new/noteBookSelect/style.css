@@ -1,0 +1,13 @@
+.app_sidebar_notebook_select {
+    border: 3px solid var(--color-border);
+    border-radius: 20px;
+    height: 40px;
+    width: 100%;
+    box-sizing: border-box;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0;
+    background-color: var(--color-secondary-background);
+}
