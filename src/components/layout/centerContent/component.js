@@ -1,6 +1,6 @@
 import "./style.css";
 
-export function CenterColumn({children}) {
+export function CenterContent({children}) {
     return (
         <div className="center_column">
             {children}

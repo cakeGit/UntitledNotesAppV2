@@ -7,6 +7,13 @@ body {
   font-family: "Reem Kufi", sans-serif; 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-secondary-background);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Reem Kufi", sans-serif;
+  color: var(--color-text-heavy);
+  margin: 0;
 }
 
 code {

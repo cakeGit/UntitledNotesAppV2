@@ -1,8 +1,9 @@
 .page_center_content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    z-index: -1;
-    text-align: center;
-    transform: translate(-50%, -50%);
+    width: 90vw;
+    border-radius: 20px;
+    border: 3px solid var(--color-soft-border);
+    box-sizing: border-box;
+    padding: 2vh 3vw;
+    min-height: 90vh;
+    margin: 5vh auto;
 }

@@ -7,6 +7,7 @@
     border-right: 5px solid var(--color-soft-border);
     box-sizing: border-box;
     padding: 0 10px;
+    background-color: var(--color-pure-background);
 }
 
 .app_sidebar_pull_tab {

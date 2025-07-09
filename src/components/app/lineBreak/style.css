@@ -1,0 +1,11 @@
+.app_line_break {
+    width: 100%;
+    margin: 0 auto;
+}
+.app_line_break hr {
+    border: none;
+    border-top: 3px solid var(--color-soft-border);
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
