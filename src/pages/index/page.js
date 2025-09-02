@@ -13,6 +13,7 @@ function BuildPage() {
       <PageCenterContent>
         <h1>Pagepagepage</h1>
         <AppLineBreak />
+        <PageViewComponent pageId={0}></PageViewComponent>
       </PageCenterContent>
       {/* <CenterColumn>
         <h1>UntitledNotesApp</h1>
