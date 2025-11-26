@@ -1,8 +1,6 @@
-import { AppLineBreak } from "../../components/app/lineBreak/component";
-import { PageViewComponent } from "../../components/app/pageview/component";
+import { AppLineBreak } from "../../components/app/line_break/component";
+import { PageViewComponent } from "../../components/app/page_view/component";
 import { AppSideBar } from "../../components/app/sidebar-new/component";
-import { AppSidebarLineBreak } from "../../components/app/sidebar-new/lineBreak/component";
-import { CenterColumn } from "../../components/layout/centerContent/component";
 import { PageCenterContent } from "../../components/layout/pageCenterContent/component";
 import "./App.css";
 

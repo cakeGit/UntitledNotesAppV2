@@ -29,3 +29,18 @@ code {
   --color-text: #2B2B2B;
   --color-text-heavy: #2B2B2B;
 }
+/* when an ancestor has .showplaceholder */
+.showplaceholder[contenteditable][placeholder]::before {
+  content: attr(placeholder);
+  z-index: 9;
+  line-height: 1.7;
+  color: #555;
+  word-break: break-all;
+  user-select: none;
+  pointer-events: none; /* so clicks go to the editable div */
+}
+
+/* hide the pseudo-content when focused (normal empty check breaks with grammar checkers) */
+.showplaceholder[contenteditable][placeholder]:focus::before {
+  content: "";
+}

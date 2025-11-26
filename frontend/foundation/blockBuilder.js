@@ -1,5 +1,5 @@
 import { createRef } from "react";
-import { PageBlockWrapperComponent } from "../components/app/pageblockwrapper/component";
+import { PageBlockWrapperComponent } from "../components/app/pageblock_wrapper/component";
 import { PageTextBlock } from "../components/blocks/text";
 
 export function buildBlockForData(blockId, data, children, pageRef, blockRef) {
