@@ -20,7 +20,7 @@ export const db = new sqlite.Database(path.join(DB_DIR, 'database.sqlite'), asyn
             if (err) {
                 console.error('Could not run setup SQL script', err);
             } else {
-                console.log('Database setup complete, delegating database work to dbWorker.js');
+                console.log('Database setup complete, delegating database work to databaseWorker.js');
             
                 requireDatabaseWorker().then(( mod ) => {
                     mod.startDatabaseWorker(db);

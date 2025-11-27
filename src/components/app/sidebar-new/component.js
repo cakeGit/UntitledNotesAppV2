@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import "./style.css";
-import { AppSidebarLineBreak } from "./lineBreak/component";
-import { AppSidebarNoteBookSelect } from "./noteBookSelect/component";
+import { AppSidebarLineBreak } from "./lineBreak/component.js";
+import { AppSidebarNoteBookSelect } from "./noteBookSelect/component.js";
 
 export function AppSideBar() {
     const sidebarRef = useRef(null);

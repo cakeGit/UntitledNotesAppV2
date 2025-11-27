@@ -1,5 +1,6 @@
-import { applyBlockMove } from "./mover";
+import { applyBlockMove } from "./mover.js";
 
+//TODO: more documentation in this
 /**
  * Get the Y position of a target element based on its position and inside properties.
  * This is used to compare against the cursors Y position during drag operations.
