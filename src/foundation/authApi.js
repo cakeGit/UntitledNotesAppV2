@@ -20,14 +20,7 @@ export function getAuthToken() {
 export function withAuthCheck() {
     console.log("Running auth check");
     //Check for existing cookie, if not there, then send the user to login page (if not already there)
-    if (!getAuthToken() && !window.location.href.endsWith('/login')) {
-        window.location.href = '/login';
+    if (!getAuthToken() && !window.location.href.endsWith('/get_account')) {
+        window.location.href = '/get_account';
     }
-}
-
-export function authElements() {
-    return <>
-        <script src="https://apis.google.com/js/platform.js" async defer></script>
-        <meta name="google-signin-client_id" content="72817083579-kd1gu053ehj8os6snedmut08i4dgl6md.apps.googleusercontent.com"></meta>
-    </>
 }

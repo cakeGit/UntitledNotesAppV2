@@ -4,13 +4,12 @@ import { AppSideBar } from "../../components/app/sidebar-new/component.js";
 import { PageCenterContent } from "../../components/layout/pageCenterContent/component.js";
 import "./App.css";
 
-import { withAuthCheck, authElements } from "../../foundation/authApi.js";
+import { withAuthCheck } from "../../foundation/authApi.js";
 
 function BuildPage() {
   withAuthCheck();
   return (
     <div>
-      {authElements()}
       <AppSideBar />
       <PageCenterContent>
         <h1>Pagepagepage</h1>
