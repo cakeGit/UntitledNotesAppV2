@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { OAuth2Client } from 'google-auth-library';
+import { dbInterface } from './webDbInterface.js';
+import { logWeb } from '../logger.mjs';
 
 const apiRouter = Router();
 
@@ -23,14 +25,20 @@ apiRouter.all("/google_check_account", async (req, res) => {
             audience: clientId,
         });
     } catch (error) {
-        console.error("Error verifying Google ID token:", error);
+        logWeb("Error verifying Google ID token:", error);
         return res.status(400).json({ error: "Invalid credential" });
     }
     const payload = ticket.getPayload();
-    const userid = payload['sub'];
-    console.log("Verified Google user ID:", userid);
-
-    res.json({ exists: false });
+    const userId = payload['sub'];
+    
+    //Now go ask the database worker to see if this user exists, send it straight back
+    try {
+        const result = await dbInterface.sendRequest("google_check_account", { googleUserId: userId });
+        return res.json(result);
+    } catch (error) {
+        logWeb("Database query error:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
 });
 
 export { apiRouter };

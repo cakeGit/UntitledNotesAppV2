@@ -4,9 +4,29 @@ import "./style.css";
 import { fetchRawApi } from "../../foundation/rawApi.js";
 
 function BuildPage() {
+  //Get the google sign in JWT token from local storage
+  let googleJWT = localStorage.getItem("google_jwt");
+  console.log("googleJWT from storage", googleJWT);
+
+  //If not present, send to get account
+  if (!googleJWT) {
+    window.location.href = "/get_account";
+    return null;
+  }
+
+
+
+
   return (
     <PageCenterContent>
-      <h1>Log in or create account with Google</h1>
+      <h1>Create account</h1>
+      <hr/>
+      <p>
+        Using existing google account
+      </p>
+      <pre>
+        Google account data:
+      </pre>
       <hr/>
       <p className="centered_text">
         Sign in with your Google account to access or create an account for your notes.
@@ -18,16 +38,6 @@ function BuildPage() {
 
           //Ask the server to check for an account with this credential, so we can go to create account screen or sign in;
           let response = await fetchRawApi("google_check_account", { credential });
-
-          if (!response.exists && response.link_action === "go_to_signup") {
-            console.log("No account found, going to signup");
-            //Store credential in localstorage for the onboarding process
-            localStorage.setItem("google_jwt", credential);
-            window.location.href = "/create_account";
-            return;
-          }
-
-
           console.log(response);
         }}
         onError={() => {
