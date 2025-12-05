@@ -3,7 +3,7 @@ import { Route, Routes } from "react-router-dom";
 import Home from "./pages/index/page.js";
 import Error404 from "./pages/error404/page.js";
 import GetAccount from "./pages/get_account/page.js";
-import CreateAccount from "./pages/get_account/page.js";
+import CreateAccount from "./pages/create_account/page.js";
 
 const Main = () => {
   return (

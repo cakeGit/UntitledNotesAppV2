@@ -1,10 +1,9 @@
-import cluster from 'cluster';
-import { logWeb } from '../logger.mjs';
+import { logClus } from '../logger.mjs';
 
 let dbInterface = null;
 async function setup(databaseWorker) {
     //Wait for "database_ready" message from database worker before allowing queries
-    logWeb("Waiting for database worker to be ready before web setup...");
+    logClus("PRIMARY/DB_INTERFACE", "Setup invoked, binding listener to wait for database worker to be ready before web setup...");
 
     let clusterMessageHandler = (worker, message) => {};
 
@@ -13,8 +12,7 @@ async function setup(databaseWorker) {
     });
 
     const handleDatabaseResponse = (message) => {
-        //Handle responses from the database worker here
-        logWeb("Received message from database worker:", message);
+        //Handle responses from the database worker here (check interface exists first)
         if (dbInterface) {
             dbInterface.handleResponse(message);
         }
@@ -51,10 +49,10 @@ async function setup(databaseWorker) {
     await new Promise((resolve, reject) => {
         clusterMessageHandler = (message) => {
             if (message === 'database_ready') {
-                logWeb("Database worker is ready, proceeding with web setup...");
+                logClus("PRIMARY/DB_INTERFACE", "Recived database ready signal, proceeding with web setup...");
                 clusterMessageHandler = handleDatabaseResponse;
                 dbInterface = new DbInterface(databaseWorker);
-                logWeb("Setting up main web...");
+                logClus("PRIMARY/DB_INTERFACE", "Setting up main web...");
                 resolve();
             }
         };

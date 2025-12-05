@@ -27,7 +27,6 @@ function BuildPage() {
             return;
           }
 
-
           console.log(response);
         }}
         onError={() => {

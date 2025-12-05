@@ -1,21 +1,28 @@
 import cluster from 'node:cluster';
-import { logClus } from './logger.mjs';
+import { logClus, setupWorkerListener } from './logger.mjs';
 
-const importDefferred = async (modulePath) => {
-    return import(modulePath);
-};
-
+// the cluster.isPrimary property is true for the main process, so true when starting, falce when we do fork
 if (cluster.isPrimary) {
-    logClus("PR", "Primary process starting, this is the web server");
-    let dbWorker = cluster.fork();
+    //The primary process is the web server
+    logClus("PRIMARY", "Primary process starting, this is the web server");
+    let dbWorker = cluster.fork(); //Run this script again, but as a worker process, being the database
+    setupWorkerListener(dbWorker); //Setup logging listener for database worker
+    
     (async () => {
-        let dbInterface = await importDefferred('./web/webDbInterface.js');
-        logClus("PR", "Setting up db interface");
+        //Load the interface module first, since the web worker depends on it
+        let dbInterface = await import('./web/webDbInterface.js');
+
+        logClus("PRIMARY", "Setting up db interface");
+        //Setup the database interface to communicate with the database worker
+        //(it will be waiting for the database worker to confirm it is ready, hence the await)
         await (dbInterface.setup(dbWorker));
-        logClus("PR", "Starting web server main");
-        importDefferred('./web/index.js');
+
+        //Now that the database interface is ready, start the web server
+        logClus("PRIMARY", "Starting web server main");
+        import('./web/index.js');
     })();
 } else {
+    //We always define the non primary process as the database
     logClus("DB", "Worker process started, this is the database");
-    importDefferred('./database/index.js');
+    import('./database/index.js');
 }

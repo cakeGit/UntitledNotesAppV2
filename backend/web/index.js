@@ -3,6 +3,8 @@ import path from 'path';
 import { apiRouter } from './apiRouter.js';
 import { logWeb } from '../logger.mjs';
 
+logWeb("Web index.js loaded, starting web server...");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const WEB_INDEX_SCRIPT_DIR = import.meta.url.replace('file:///', '').replace('/index.js', '');
