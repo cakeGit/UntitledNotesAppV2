@@ -1,3 +1,26 @@
 .centered_text {
     text-align: center;
 }
+
+.setting_container {
+    display: flex;
+    flex-direction: column;
+    padding: 0 20%
+}
+
+.setting_container > div {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.setting_container > div > div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.create_account_button_container {
+    width: 100%;
+    padding: 25px;
+}

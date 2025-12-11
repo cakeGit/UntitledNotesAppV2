@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { PageBlockSubcontainerComponent } from "../app/pageblock_subcontainer/component.js";
+import { PageBlockSubcontainerComponent } from "../app/pageblock_subcontainer/component.jsx";
 
 export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
     const subcontainerRef = useRef(null);

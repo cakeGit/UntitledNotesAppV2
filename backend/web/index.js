@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import { apiRouter } from './apiRouter.js';
 import { logWeb } from '../logger.mjs';
+import ViteExpress from "vite-express";
 
 logWeb("Web index.js loaded, starting web server...");
 
@@ -15,21 +16,20 @@ app.use(express.json());
 //Add api routes
 app.use('/api/', apiRouter);
 
-app.use(express.static(BUILD_DIR, { maxAge: '1d' }));
+function getFileExtension(filename) {
+    const parts = filename.split("#")[0].split("?")[0].split('.');
+    return parts.length <= 1 ? "" : parts.pop().trim();
+}
 
-app.get('*', (req, res) => {
-    //If no ending file extension, serve index.html (for react router)
-    if (!path.extname(req.path)) {
-        return res.sendFile(path.join(BUILD_DIR, 'index.html'));
-    }
+// app.use(express.static(BUILD_DIR, { maxAge: '1d' }));
+// app.use((req, res, next) => {
+//   if (req.method === "GET" && !req.path.startsWith("/api") && getFileExtension(req.path) == "") {
+//     res.sendFile(path.join(process.cwd(), "build/index.html"));
+//   } else {
+//     next();
+//   }
+// });
 
-    res.sendFile(path.join('404.html'), err => {
-        if (err) {
-            res.status(err.status || 500).send('Not found');
-        }
-    });
-});
-
-app.listen(PORT, () => {
-    logWeb(`Server running on http://localhost:${PORT} -> serving ${BUILD_DIR}`);
+ViteExpress.listen(app, PORT, () => {
+    logWeb(`Server running on http://localhost:${PORT}`);
 });

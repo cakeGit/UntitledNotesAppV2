@@ -1,7 +1,7 @@
 import { use, useEffect, useRef, useState } from "react";
-import { Page } from "../../../foundation/page/page.js";
+import { Page } from "../../../foundation/page/page.jsx";
 import "./style.css";
-import { buildNodeChildrenSimple } from "../../../foundation/blockBuilder.js";
+import { buildNodeChildrenSimple } from "../../../foundation/blockBuilder.jsx";
 
 export function PageViewComponent({ pageId }) {
     const pageRef = useRef(

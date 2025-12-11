@@ -1,0 +1,30 @@
+.user_info_container {
+    display: flex;
+    flex-direction: row;
+    padding: 5px 5px;
+    border: 3px solid var(--color-soft-border);
+    border-radius: 40px;
+    height: 40px;
+    width: 250px;
+    margin: 5px 0;
+}
+
+.user_info_container > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.user_info_pfp {
+    width:40px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.user_info_email {
+    color: var(--color-text);
+    opacity: 0.75;
+    margin: 0;
+    font-size: 0.8em;
+}

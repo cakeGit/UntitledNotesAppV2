@@ -1,9 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
-import reportWebVitals from "./reportWebVitals.js";
 import { BrowserRouter } from "react-router-dom";
-import Main from "./Main.js";
+import Main from "./Main.jsx";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

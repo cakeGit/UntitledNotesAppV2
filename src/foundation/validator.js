@@ -1,0 +1,3 @@
+class ValidationException extends Error {
+    
+}

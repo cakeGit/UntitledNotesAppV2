@@ -1,7 +1,7 @@
-import { PageCenterContent } from "../../components/layout/pageCenterContent/component.js";
+import { PageCenterContent } from "../../components/layout/pageCenterContent/component.jsx";
 import { GoogleLogin } from "@react-oauth/google";
 import "./style.css";
-import { fetchRawApi } from "../../foundation/rawApi.js";
+import { fetchRawApi } from "../../foundation/rawApi.jsx";
 
 function BuildPage() {
   return (
@@ -9,7 +9,7 @@ function BuildPage() {
       <h1>Log in or create account with Google</h1>
       <hr/>
       <p className="centered_text">
-        Sign in with your Google account to access or create an account for your notes.
+        Sign in with your Google account.
       </p>
       
       <GoogleLogin

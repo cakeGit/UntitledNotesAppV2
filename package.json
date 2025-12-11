@@ -8,22 +8,21 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
+    "express": "^5.2.1",
     "google-auth-library": "^10.5.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
-    "react-scripts": "5.0.1",
     "sqlite3": "^5.1.7",
     "terminal-kit": "^3.1.2",
+    "vite-express": "^0.21.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "server": "node backend/index.js",
-    "br": "react-scripts build && node backend/index.js",
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "eslintConfig": {
     "extends": [
@@ -44,9 +43,11 @@
     ]
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.2",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.12"
+    "tailwindcss": "^4.1.12",
+    "vite": "^7.2.7"
   },
   "type": "module"
 }

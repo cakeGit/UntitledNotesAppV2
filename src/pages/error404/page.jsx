@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { PageCenterContent } from "../../components/layout/pageCenterContent/component.js";
+import { PageCenterContent } from "../../components/layout/pageCenterContent/component.jsx";
 
 function BuildPage() {
   return (

@@ -1,4 +1,4 @@
-import { applyBlockMove } from "./mover.js";
+import { applyBlockMove } from "./mover.jsx";
 
 //TODO: more documentation in this
 /**

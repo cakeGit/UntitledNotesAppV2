@@ -1,6 +1,6 @@
 import { useRef } from "react";
-import { buildBlockForData } from "../../../foundation/blockBuilder.js";
-import { createDragHandler } from "./drag.js";
+import { buildBlockForData } from "../../../foundation/blockBuilder.jsx";
+import { createDragHandler } from "./drag.jsx";
 import "./style.css";
 
 //Page block wrapper is a component that wraps each block in the page editor, provides drag and drop functionality

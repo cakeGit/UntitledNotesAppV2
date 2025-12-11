@@ -1,10 +1,10 @@
-import { AppLineBreak } from "../../components/app/line_break/component.js";
-import { PageViewComponent } from "../../components/app/page_view/component.js";
-import { AppSideBar } from "../../components/app/sidebar-new/component.js";
-import { PageCenterContent } from "../../components/layout/pageCenterContent/component.js";
+import { AppLineBreak } from "../../components/app/line_break/component.jsx";
+import { PageViewComponent } from "../../components/app/page_view/component.jsx";
+import { AppSideBar } from "../../components/app/sidebar-new/component.jsx";
+import { PageCenterContent } from "../../components/layout/pageCenterContent/component.jsx";
 import "./App.css";
 
-import { withAuthCheck } from "../../foundation/authApi.js";
+import { withAuthCheck } from "../../foundation/authApi.jsx";
 
 function BuildPage() {
   withAuthCheck();
