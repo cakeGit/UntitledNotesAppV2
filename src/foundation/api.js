@@ -1,6 +1,6 @@
 export class UnsuccessfulResponseError extends Error {
     constructor(data) {
-        super(data.error || "Unknown API error");
+        super(data.error || "Unknown API error " + JSON.stringify(data));
         this.data = data;
     }
 
@@ -23,14 +23,14 @@ export async function fetchRawApi(endpoint, body = null, options = {}) {
     }
     return fetch(url, fetchOptions)
         .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to fetch api: ' + response.statusText);
-            }
-            return response.json();
+            // if (!response.ok) {
+            //     throw new Error('Failed to fetch api: ' + response.statusText);
+            // }
+            return response.json() || { success: false, error: "Empty response from server" };
         })
         .then(data => {
-            if (data.success === false) {
-                throw new UnsuccessfulResponseError(data.error, data);
+            if (data?.success === false) {
+                throw new UnsuccessfulResponseError(data);
             }
             return data;
         });

@@ -1,3 +1,5 @@
+import { RequestError } from "./requestError.js";
+
 export class ValidationException extends Error {
     constructor(message) {
         super(message);
@@ -88,17 +90,20 @@ export class Validator {
                 step.test(data);
             } catch (e) {
                 if (e instanceof ValidationException) {
+                    let message = `${this.fieldName ? this.fieldName + " " : ""}${e.toString()}`;
                     return {
                         isValid: false,
-                        errorMessage: `${this.fieldName} ${e.toString()}`,
-                        error: e
+                        errorMessage: message,
+                        error: e,
+                        throwErrorIfInvalid: () => { throw new ValidationException(message); },
+                        throwRequestErrorIfInvalid: () => { throw new RequestError(message); }
                     }
                 } else {
                     throw e; // rethrow unexpected exceptions
                 }
             }
         }
-        return { isValid: true, errorMessage: null, error: null };
+        return { isValid: true, errorMessage: null, error: null, throwErrorIfInvalid: () => {}, throwRequestErrorIfInvalid: () => {} };
     }
 
     //Shorthands
@@ -122,6 +127,10 @@ export class Validator {
         return this.where(new FieldSubValidator(fieldName, validatorBuilder));
     }
 
+    whereAllFields(validatorBuilder) {
+        return this.where(new AllFieldsSubValidator(validatorBuilder));
+    }
+
 }
 
 export class FieldSubValidator extends ValidationCondition {
@@ -137,6 +146,42 @@ export class FieldSubValidator extends ValidationCondition {
         var validatorResult = this.fieldValidator.test(fieldValue);
         if (!validatorResult.isValid) {
             throw validatorResult.error;
+        }
+    }
+
+}
+
+/**
+ * camelCase to Title Case
+ */
+function camelToReadable(camelCaseString) {
+    let result = "";
+    let forceNextUpper = true;
+    for (let i = 0; i < camelCaseString.length; i++) {
+        const char = camelCaseString[i];
+        if (i > 0 && /[A-Z]/.test(char)) {
+            result += " ";
+        }
+        result += forceNextUpper ? char.toUpperCase() : char;
+        forceNextUpper = false;
+    }
+    return result;
+}
+
+export class AllFieldsSubValidator extends ValidationCondition {
+
+    constructor(validatorBuilder) {
+        super();
+        this.fieldValidator = validatorBuilder(new Validator());
+    }
+
+    test(data) {
+        for (const key in data) {
+            const fieldValue = data[key];
+            var validatorResult = this.fieldValidator.test(fieldValue);
+            if (!validatorResult.isValid) {
+                throw new ValidationException(camelToReadable(key) + " " + validatorResult.error.message);
+            }
         }
     }
 

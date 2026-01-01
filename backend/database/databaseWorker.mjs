@@ -1,5 +1,7 @@
 import { logDb } from "../logger.mjs";
+import { RequestError } from "../web/foundation_safe/requestError.js";
 import { queries } from "./queries.mjs";
+import authDatabaseRoutes from "./routes/authDatabaseRoutes.js";
 
 function logTestQuery(db) {
     //Run the "get_users" query as a test
@@ -17,7 +19,48 @@ function logTestQuery(db) {
     });
 }
 
+//It just works, or something
+function wrapDbForPromises(db) {
+    return {
+        get: (sql, params) => {
+            return new Promise((resolve, reject) => {
+                db.get(sql, params, (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(row);
+                    }
+                });
+            })
+        },
+        all: (sql, params) => {
+            return new Promise((resolve, reject) => {
+                db.all(sql, params, (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(rows);
+                    }
+                });
+            });
+        },
+        run: (sql, params) => {
+            return new Promise((resolve, reject) => {
+                db.run(sql, params, function(err) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(this);
+                    }
+                });
+            });
+        }
+    };
+}
+
 export function startDatabaseWorker(db) {
+    db = wrapDbForPromises(db);
+
     logDb("Database worker started, ready to handle queries.");
 
     logTestQuery(db);
@@ -48,28 +91,9 @@ function addEndpoint(type, handler) {
     requestRoutes[type] = handler;
 }
 
-addEndpoint("google_check_account", async (db, message, response) => {
-    let googleUserId = message.googleUserId;
-    if (!googleUserId) {
-        throw new Error("Missing googleUserId for google_check_account request");
-        return;
-    }
+authDatabaseRoutes(addEndpoint);
 
-    const query = response.getQueryOrThrow('get_user_by_google_uid');
-
-    db.get(query, [googleUserId], (err, row) => {
-        if (err) {
-            throw err;
-        }
-        if (row) {
-            response.success({ exists: true, userId: row.id });
-        } else {
-            response.success({ exists: false, link_action: "go_to_signup" });
-        }
-    });
-});
-
-function handleDatabaseMessage(db, message) {
+async function handleDatabaseMessage(db, message) {
     let type = message.type;
     let requestId = message.requestId;
     let handler = requestRoutes[type];
@@ -96,9 +120,14 @@ function handleDatabaseMessage(db, message) {
     }
 
     try {
-        handler(db, message, response);
+        await handler(db, message, response);
     } catch (err) {
-        response.error("Handler error: " + err.message);
+        if (err instanceof RequestError) {
+            process.send({ requestId, status: "error", requestError: true, error: err.message });
+            return;
+        }
+
+        response.error("Database error: " + err.message);
     }
 }
 

@@ -1,8 +1,9 @@
 -- Users
 CREATE TABLE IF NOT EXISTS Users (
     UserID BLOB PRIMARY KEY,
-    Name TEXT NOT NULL,
+    LabelName TEXT NOT NULL, --Little "tag" name. e.g "Samuel" -> "samuel"
     DisplayName TEXT NOT NULL,
+    Email TEXT NOT NULL,
     GoogleUserID TEXT, --May be NULL if the user deleted their account
     ProfilePictureURL TEXT --Similarly may be NULL
 );

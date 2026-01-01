@@ -2,7 +2,7 @@ import { PageCenterContent } from "../../components/layout/pageCenterContent/com
 import "./style.css";
 import { UserInfo } from "../../components/app/user_information/component.jsx";
 import { useRef } from "react";
-import { Validator } from "../../foundation/validator.js";
+import { Validator } from "../../../backend/web/foundation_safe/validator.js";
 import { fetchRawApi } from "../../foundation/api.js";
 
 const VALID_DISPLAY_NAME_VALIDATOR = new Validator("Display name")

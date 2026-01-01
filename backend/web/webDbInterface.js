@@ -1,4 +1,5 @@
-import { logClus } from '../logger.mjs';
+import { logClus, logDb, logWeb } from '../logger.mjs';
+import { RequestError } from './foundation_safe/requestError.js';
 
 let dbInterface = null;
 async function setup(databaseWorker) {
@@ -35,12 +36,13 @@ async function setup(databaseWorker) {
 
         handleResponse(message) {
             const { requestId, error, data } = message;
-            const pending = this.pendingRequests[requestId];
-            if (pending) {
+            const requestToComplete = this.pendingRequests[requestId];
+            if (requestToComplete) {
                 if (message.status === "success") {
-                    pending.resolve(data);
+                    requestToComplete.resolve(data);
                 } else {
-                    pending.reject(new Error(error));
+                    logWeb("Database interface received error response:", error, JSON.stringify(message));
+                    requestToComplete.reject(message.requestError ? new RequestError(error) : new Error(error));
                 }
             }
         }
