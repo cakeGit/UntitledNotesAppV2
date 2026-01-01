@@ -4,7 +4,7 @@ import { AppSideBar } from "../../components/app/sidebar-new/component.jsx";
 import { PageCenterContent } from "../../components/layout/pageCenterContent/component.jsx";
 import "./App.css";
 
-import { withAuthCheck } from "../../foundation/authApi.jsx";
+import { withAuthCheck } from "../../foundation/authApi.js";
 
 function BuildPage() {
   withAuthCheck();

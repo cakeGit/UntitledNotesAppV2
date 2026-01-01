@@ -1,7 +1,7 @@
 import { PageCenterContent } from "../../components/layout/pageCenterContent/component.jsx";
 import { GoogleLogin } from "@react-oauth/google";
 import "./style.css";
-import { fetchRawApi } from "../../foundation/rawApi.jsx";
+import { fetchRawApi } from "../../foundation/api.js";
 
 function BuildPage() {
   return (
@@ -16,7 +16,7 @@ function BuildPage() {
         onSuccess={async credentialResponse => {
           let credential = credentialResponse.credential;
 
-          //Ask the server to check for an account with this credential, so we can go to create account screen or sign in;
+          //Ask the server to check for an account with this credential, so we can go to create account screen or sign in
           let response = await fetchRawApi("google_check_account", { credential });
 
           if (!response.exists && response.link_action === "go_to_signup") {

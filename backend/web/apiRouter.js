@@ -9,8 +9,6 @@ const clientId = '72817083579-kd1gu053ehj8os6snedmut08i4dgl6md.apps.googleuserco
 const googleOAuthClient = new OAuth2Client(clientId);
 
 apiRouter.all("/google_check_account", async (req, res) => {
-    console.log(req.body);
-
     let credential = req.body?.credential;
 
     if (!credential) {
@@ -39,6 +37,12 @@ apiRouter.all("/google_check_account", async (req, res) => {
         logWeb("Database query error:", error);
         return res.status(500).json({ error: "Internal server error" });
     }
+});
+
+apiRouter.all("/create_account", async (req, res) => {
+    console.log(req.body);
+
+    return res.json({ success: false });
 });
 
 export { apiRouter };

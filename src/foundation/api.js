@@ -1,3 +1,14 @@
+export class UnsuccessfulResponseError extends Error {
+    constructor(data) {
+        super(data.error || "Unknown API error");
+        this.data = data;
+    }
+
+    getData() {
+        return this.data;
+    }
+}
+
 export async function fetchRawApi(endpoint, body = null, options = {}) {
     let url = window.location.origin + "/api/" + endpoint;
     let fetchOptions = {
@@ -16,5 +27,11 @@ export async function fetchRawApi(endpoint, body = null, options = {}) {
                 throw new Error('Failed to fetch api: ' + response.statusText);
             }
             return response.json();
+        })
+        .then(data => {
+            if (data.success === false) {
+                throw new UnsuccessfulResponseError(data.error, data);
+            }
+            return data;
         });
 }

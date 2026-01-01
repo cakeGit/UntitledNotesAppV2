@@ -2,17 +2,34 @@ import { PageCenterContent } from "../../components/layout/pageCenterContent/com
 import "./style.css";
 import { UserInfo } from "../../components/app/user_information/component.jsx";
 import { useRef } from "react";
+import { Validator } from "../../foundation/validator.js";
+import { fetchRawApi } from "../../foundation/api.js";
 
-function clientValidateDisplayName(displayName) {
-  
-}
+const VALID_DISPLAY_NAME_VALIDATOR = new Validator("Display name")
+  .notNull()
+  .lengthBetween(1, 30)
+  .hasNameLikeCharsOnly();
 
 function trySubmitCreateAccountInfo(displayName, jwt) {
+  const displayNameValue = displayName.current.value;
+  const validation = VALID_DISPLAY_NAME_VALIDATOR.test(displayNameValue);
 
+  if (!validation.isValid) {
+    alert(`Invalid display name: ${validation.errorMessage}`);
+    return;
+  }
+  
+  console.log("Submitting create account with display name:", displayNameValue, "and JWT:", jwt);
 
-
-  console.log(displayName, jwt);
-  console.log("aaaaaaaaa")
+  fetchRawApi("create_account", { display_name: displayNameValue, credential: jwt })
+    .then(response => {
+      console.log("Account created successfully:", response);
+      window.location.href = "/";
+    })
+    .catch(errorResponse => {
+      console.error("Failed to create account:", errorResponse);
+      alert("Failed to create account: " + errorResponse.message);
+    });
 }
 
 function BuildPage() {
