@@ -1,2 +1,2 @@
-INSERT INTO USERS (GoogleUserID, LabelName, DisplayName, Email, ProfilePictureURL)
-VALUES (?, ?, ?, ?, ?);
+INSERT INTO USERS (UserID, GoogleUserID, LabelName, DisplayName, Email, ProfilePictureURL)
+VALUES (?, ?, ?, ?, ?, ?);

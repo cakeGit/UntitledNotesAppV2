@@ -1,12 +1,13 @@
-import { RequestError } from "../../web/foundation_safe/requestError.js";
+import { logDb } from "../../logger.mjs";
 import { ALL_FIELDS_PRESENT } from "../../web/foundation_safe/validations.js";
+import { generateRandomUUID, getUUIDBlob, parseUUIDBlob } from "../uuidBlober.mjs";
 
 const FALLBACK_TAG_NAME_CHARS = 'abcdefghijklmnopqrstuvwxyz';
 
 function randomChars(length) {
     let result = '';
     for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
+        result += FALLBACK_TAG_NAME_CHARS.charAt(Math.floor(Math.random() * FALLBACK_TAG_NAME_CHARS.length));
     }
     return result;
 }
@@ -21,7 +22,7 @@ function getTagName(displayName) {
     return name.toLowerCase();
 }
 
-export default function authDatabaseRoutes(addEndpoint) {
+export default function userDatabaseRoutes(addEndpoint) {
     addEndpoint("google_check_account", async (db, message, response) => {
         let googleUserId = message.googleUserId;
 
@@ -30,8 +31,9 @@ export default function authDatabaseRoutes(addEndpoint) {
         const query = response.getQueryOrThrow('get_user_by_google_uid');
     
         let row = await db.get(query, [googleUserId]);
+        console.log(row)
         if (row) {
-            response.success({ exists: true, userId: row.id });
+            response.success({ exists: true, userId: row.UserID, linked_auth_key: issueNewAuthKeyForUserUUID(parseUUIDBlob(row.UserID)) });
         } else {
             response.success({ exists: false, link_action: "go_to_signup" });
         }
@@ -48,11 +50,14 @@ export default function authDatabaseRoutes(addEndpoint) {
         
         const query = response.getQueryOrThrow('create_user');
     
-        let row = await db.get(query, [userData.googleUserId, userData.displayName, getTagName(userData.displayName), userData.email, userData.profilePictureUrl]);
-        if (row) {
-            response.success({ exists: true, userId: row.id, link_action: "go_to_login" });
-        } else {
-            throw new RequestError("Failed to create account in database");
-        }
+        let tagName = getTagName(userData.displayName);
+        let userUUID = generateRandomUUID();
+        let userUUIDBlob = getUUIDBlob(userUUID);
+
+        logDb(`Creating new user account ${userData.displayName} (${userUUID}): ${tagName}~${userData.email}`);
+
+        await db.run(query, [userUUIDBlob, userData.googleUserId, userData.displayName, tagName, userData.email, userData.profilePictureUrl]);
+        
+        response.success({ userId: userUUID });
     });
 }

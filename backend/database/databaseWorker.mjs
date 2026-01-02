@@ -1,7 +1,7 @@
 import { logDb } from "../logger.mjs";
 import { RequestError } from "../web/foundation_safe/requestError.js";
 import { queries } from "./queries.mjs";
-import authDatabaseRoutes from "./routes/authDatabaseRoutes.js";
+import userDatabaseRoutes from "./routes/userDatabaseRoutes.mjs";
 
 function logTestQuery(db) {
     //Run the "get_users" query as a test
@@ -91,7 +91,7 @@ function addEndpoint(type, handler) {
     requestRoutes[type] = handler;
 }
 
-authDatabaseRoutes(addEndpoint);
+userDatabaseRoutes(addEndpoint);
 
 async function handleDatabaseMessage(db, message) {
     let type = message.type;
