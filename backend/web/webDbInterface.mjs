@@ -42,7 +42,9 @@ async function setup(databaseWorker) {
                     requestToComplete.resolve(data);
                 } else {
                     logWeb("Database interface received error response:", error, JSON.stringify(message));
-                    requestToComplete.reject(message.requestError ? new RequestError(error) : new Error(error));
+                    requestToComplete.reject(message.requestError ? new RequestError(error) :
+                        message.needsNewLoginError ? new RequestNeedsNewLoginError(error) :
+                        new RequestError("Internal error" + error ? ": " + error : ""));
                 }
             }
         }

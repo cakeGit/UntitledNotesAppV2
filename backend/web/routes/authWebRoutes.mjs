@@ -1,5 +1,5 @@
 import { OAuth2Client } from 'google-auth-library';
-import { dbInterface } from '../webDbInterface.js';
+import { dbInterface } from '../webDbInterface.mjs';
 import { logWeb } from '../../logger.mjs';
 import { Validator } from '../foundation_safe/validator.js';
 import { RequestError } from '../foundation_safe/requestError.js';

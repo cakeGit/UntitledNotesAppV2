@@ -6,3 +6,8 @@ export class RequestError extends Error {
         super(message);
     }
 }
+export class RequestNeedsNewLoginError extends RequestError {
+    constructor(message = "Request needs new login") {
+        super(message);
+    }
+}

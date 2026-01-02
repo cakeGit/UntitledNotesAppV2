@@ -1,0 +1,1 @@
+SELECT UserID FROM UserLogins WHERE AuthKey = ?;

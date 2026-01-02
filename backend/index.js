@@ -10,7 +10,7 @@ if (cluster.isPrimary) {
     
     (async () => {
         //Load the interface module first, since the web worker depends on it
-        let dbInterface = await import('./web/webDbInterface.js');
+        let dbInterface = await import('./web/webDbInterface.mjs');
 
         logClus("PRIMARY", "Setting up db interface");
         //Setup the database interface to communicate with the database worker
@@ -19,7 +19,7 @@ if (cluster.isPrimary) {
 
         //Now that the database interface is ready, start the web server
         logClus("PRIMARY", "Starting web server main");
-        import('./web/index.js');
+        import('./web/index.mjs');
     })();
 } else {
     //We always define the non primary process as the database

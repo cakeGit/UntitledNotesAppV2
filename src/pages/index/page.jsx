@@ -5,14 +5,30 @@ import { PageCenterContent } from "../../components/layout/pageCenterContent/com
 import "./App.css";
 
 import { withAuthCheck } from "../../foundation/authApi.js";
+import { fetchApi } from "../../foundation/api.js";
+import { useEffect, useState } from "react";
 
 function BuildPage() {
   withAuthCheck();
+
+  let [user, setUser] = useState(null);
+
+  useEffect(() => {
+    if (user) {
+      return;
+    }
+    fetchApi("get_current_user_info")
+      .then(response => {
+        console.log(response);
+        setUser(response);
+      });
+  });
+
   return (
     <div>
       <AppSideBar />
       <PageCenterContent>
-        <h1>Pagepagepage</h1>
+        <h1>Pagepagepage <span color="grey">(hello user: {user?.label_name})</span></h1>
         <AppLineBreak />
         <PageViewComponent pageId={0}></PageViewComponent>
       </PageCenterContent>

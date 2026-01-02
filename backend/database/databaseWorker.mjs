@@ -1,5 +1,5 @@
 import { logDb } from "../logger.mjs";
-import { RequestError } from "../web/foundation_safe/requestError.js";
+import { RequestError, RequestNeedsNewLoginError } from "../web/foundation_safe/requestError.js";
 import { queries } from "./queries.mjs";
 import authDatabaseRoutes from "./routes/authDatabaseRoutes.mjs";
 import userDatabaseRoutes from "./routes/userDatabaseRoutes.mjs";
@@ -122,13 +122,23 @@ async function handleDatabaseMessage(db, message) {
     }
 
     try {
-        await handler(db, message, response);
+        let result = await handler(db, message, response);
+        if (result !== undefined) {
+            response.success(result);
+        }
     } catch (err) {
+        if (err instanceof RequestNeedsNewLoginError) {
+            process.send({ requestId, status: "error", needsNewLoginError: true, error: err.message });
+            return;
+        }
+        
         if (err instanceof RequestError) {
             process.send({ requestId, status: "error", requestError: true, error: err.message });
             return;
         }
 
+        console.error("Error handling database message:", err);
+        console.trace(err);
         response.error("Database error: " + err.message);
     }
 }

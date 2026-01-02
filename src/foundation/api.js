@@ -9,7 +9,7 @@ export class UnsuccessfulResponseError extends Error {
     }
 }
 
-export async function fetchRawApi(endpoint, body = null, options = {}) {
+export async function fetchApi(endpoint, body = null, options = {}) {
     let url = window.location.origin + "/api/" + endpoint;
     let fetchOptions = {
         method: body ? 'POST' : 'GET',
@@ -30,6 +30,9 @@ export async function fetchRawApi(endpoint, body = null, options = {}) {
         })
         .then(data => {
             if (data?.success === false) {
+                if (data.requires_new_login && window.location.pathname !== "/get_account") {
+                    window.location.href = "/get_account";
+                }
                 throw new UnsuccessfulResponseError(data);
             }
             return data;

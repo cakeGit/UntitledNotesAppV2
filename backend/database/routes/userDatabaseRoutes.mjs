@@ -60,8 +60,19 @@ export default function userDatabaseRoutes(addEndpoint) {
 
         logDb(`Creating new user account ${userData.displayName} (${userUUID}): ${tagName}~${userData.email}`);
 
-        await db.run(query, [userUUIDBlob, userData.googleUserId, userData.displayName, tagName, userData.email, userData.profilePictureUrl]);
+        await db.run(query, [userUUIDBlob, userData.googleUserId, tagName, userData.displayName, userData.email, userData.profilePictureUrl]);
         
-        response.success({ userId: userUUID });
+        return { user_id: userUUID };
+    });
+    
+    addEndpoint("get_user_info", async (db, message, response) => {
+        let userInfo = await db.get(db.getQueryOrThrow('get_user_info'), [ getUUIDBlob(message.userId) ]);
+        return {
+            user_id: parseUUIDBlob(userInfo.UserID),
+            label_name: userInfo.LabelName,
+            display_name: userInfo.DisplayName,
+            email: userInfo.Email,
+            profile_picture_url: userInfo.ProfilePictureUrl,
+        };
     });
 }

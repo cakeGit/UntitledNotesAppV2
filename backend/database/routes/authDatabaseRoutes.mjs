@@ -1,4 +1,4 @@
-import { generateRandomUUID, getUUIDBlob } from "../uuidBlober.mjs";
+import { generateRandomUUID, getUUIDBlob, parseUUIDBlob } from "../uuidBlober.mjs";
 
 export async function issueNewAuthKeyForUserUUID(db, userUUID, deviceInfo) {
     let authKey = generateRandomUUID();
@@ -15,6 +15,9 @@ export default function authDatabaseRoutes(addEndpoint) {
         
     // });
     addEndpoint("validate_user_auth", async (db, message, response) => {
-        return await db.get(db.getQueryOrThrow('logins.check_for_login'), [message.userIdBlob, message.authKey]) != null;
+        let result = await db.get(db.getQueryOrThrow('logins.get_user_of_auth'), [ getUUIDBlob(message.authKey) ]);
+        return {
+            user_id: result?.UserID ? parseUUIDBlob(result?.UserID) : null
+        };
     });
 }

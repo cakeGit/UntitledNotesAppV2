@@ -3,7 +3,7 @@ import "./style.css";
 import { UserInfo } from "../../components/app/user_information/component.jsx";
 import { useRef } from "react";
 import { Validator } from "../../../backend/web/foundation_safe/validator.js";
-import { fetchRawApi } from "../../foundation/api.js";
+import { fetchApi } from "../../foundation/api.js";
 
 const VALID_DISPLAY_NAME_VALIDATOR = new Validator("Display name")
   .notNull()
@@ -21,7 +21,7 @@ function trySubmitCreateAccountInfo(displayName, jwt) {
   
   console.log("Submitting create account with display name:", displayNameValue, "and JWT:", jwt);
 
-  fetchRawApi("create_account", { display_name: displayNameValue, credential: jwt })
+  fetchApi("create_account", { display_name: displayNameValue, credential: jwt })
     .then(response => {
       console.log("Account created successfully:", response);
       window.location.href = "/";
@@ -35,7 +35,6 @@ function trySubmitCreateAccountInfo(displayName, jwt) {
 function BuildPage() {
   //Get the google sign in JWT token from local storage
   let googleJWT = localStorage.getItem("google_jwt");
-  console.log("googleJWT from storage", googleJWT);
 
   //If not present, send to get account
   if (!googleJWT) {
@@ -48,7 +47,6 @@ function BuildPage() {
   let userInfo = null;
   try {
     userInfo = JSON.parse(atob(googleJWT.split('.')[1]));
-    console.log("Decrypted user info:", userInfo);
   } catch (error) {
     console.error("Failed to decrypt JWT:", error);
   }

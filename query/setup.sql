@@ -54,9 +54,7 @@ CREATE TABLE IF NOT EXISTS TextBlocks (
 -- Auth keys for a user
 CREATE TABLE IF NOT EXISTS UserLogins (
     UserID BLOB NOT NULL,
-    AuthKey BLOB NOT NULL,
+    AuthKey BLOB NOT NULL PRIMARY KEY,
     DeviceInfo TEXT,
     FOREIGN KEY (UserID) REFERENCES Users(UserID)
-    -- Composite primary key
-    PRIMARY KEY (UserID, AuthKey)
 );
