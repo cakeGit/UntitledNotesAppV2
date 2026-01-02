@@ -15,6 +15,7 @@
     "react-router-dom": "^7.6.2",
     "sqlite3": "^5.1.7",
     "terminal-kit": "^3.1.2",
+    "ua-parser-js": "^2.0.7",
     "vite-express": "^0.21.1",
     "web-vitals": "^2.1.4"
   },

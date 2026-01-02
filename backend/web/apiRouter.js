@@ -14,6 +14,26 @@ export class ApiRouter {
         this.expressRouter.all(path, async (req, res) => {
             try {
                 const result = await handler(req);
+
+                if (result.linked_auth_key) {
+                    //Remove the sensitive info, and set the user's cookie appropriately
+                    res.cookie("auth_key", result.linked_auth_key, {
+                        maxAge: 1000 * 60 * 60 * 24 * 100,
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: 'strict'
+                    });
+                    if (result.linked_auth_key !== "") {
+                        res.cookie("auth_present", "1", {
+                            maxAge: 1000 * 60 * 60 * 24 * 100,
+                            httpOnly: false,
+                            secure: true,
+                            sameSite: 'strict'
+                        });
+                    }
+                    delete result.linked_auth_key;
+                }
+
                 res.json({ success: true, ...result });
             } catch (error) {
                 if (error instanceof RequestError) {

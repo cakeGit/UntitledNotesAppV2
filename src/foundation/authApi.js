@@ -2,7 +2,7 @@
 
 //Get current token from cookie
 export function getAuthToken() {
-    const name = 'authToken=';
+    const name = 'auth_present=';
     const decodedCookie = decodeURIComponent(document.cookie);
     const cookieComponents = decodedCookie.split(';');
     for(let i = 0; i < cookieComponents.length; i++) {

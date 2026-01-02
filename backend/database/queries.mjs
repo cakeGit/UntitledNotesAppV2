@@ -11,7 +11,9 @@ export const queries = {};
 import fs from 'fs';
 import { logDb } from '../logger.mjs';
 
-const queryFiles = fs.readdirSync(QUERY_DIR).filter(file => file.endsWith('.sql'));
+const queryFiles = fs.readdirSync(QUERY_DIR, {
+    recursive: true
+}).filter(file => file.endsWith('.sql'));
 
 logDb(`Loading ${queryFiles.length} SQL query files from ${QUERY_DIR}`);
 
@@ -19,7 +21,8 @@ for (const file of queryFiles) {
     const queryName = path.basename(file, '.sql');
     const queryPath = path.join(QUERY_DIR, file);
     const querySQL = fs.readFileSync(queryPath, 'utf8');
-    queries[queryName] = querySQL;
+    const queryId = path.join(path.dirname(file), queryName).replace(/[/\\]/g, "."); //Needs to be consistent between linux / win, so use . as separator
+    queries[queryId] = querySQL;
 }
 
 var avaliableQueries = Object.keys(queries);

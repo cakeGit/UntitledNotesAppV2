@@ -4,6 +4,7 @@ import "./index.css";
 import { BrowserRouter } from "react-router-dom";
 import Main from "./Main.jsx";
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import reportWebVitals from "./reportWebVitals.jsx";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(

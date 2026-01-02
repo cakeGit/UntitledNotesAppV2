@@ -1,6 +1,7 @@
 import { logDb } from "../logger.mjs";
 import { RequestError } from "../web/foundation_safe/requestError.js";
 import { queries } from "./queries.mjs";
+import authDatabaseRoutes from "./routes/authDatabaseRoutes.mjs";
 import userDatabaseRoutes from "./routes/userDatabaseRoutes.mjs";
 
 function logTestQuery(db) {
@@ -54,6 +55,13 @@ function wrapDbForPromises(db) {
                     }
                 });
             });
+        },
+        getQueryOrThrow: (queryName) => {
+            const query = queries[queryName];
+            if (!query) {
+                throw new Error("Query not found: " + queryName);
+            }
+            return query;
         }
     };
 }
@@ -92,6 +100,7 @@ function addEndpoint(type, handler) {
 }
 
 userDatabaseRoutes(addEndpoint);
+authDatabaseRoutes(addEndpoint);
 
 async function handleDatabaseMessage(db, message) {
     let type = message.type;
@@ -104,13 +113,6 @@ async function handleDatabaseMessage(db, message) {
         },
         error: (errorMessage) => {
             process.send({ requestId, status: "error", error: errorMessage });
-        },
-        getQueryOrThrow: (queryName) => {
-            const query = queries[queryName];
-            if (!query) {
-                throw new Error("Query not found: " + queryName);
-            }
-            return query;
         }
     };
 
