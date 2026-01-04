@@ -40,12 +40,12 @@ export function AppSideBar() {
                     → 1.5 Example subject<br/>
                 </p>
                 <div ref={sidebarRef} className="app_sidebar_pull_tab">
-                    <svg class="chevron" viewBox="0 0 10 10" width="10" height="10" xmlns="http://www.w3.org/2000/svg" style={{
+                    <svg className="chevron" viewBox="0 0 10 10" width="10" height="10" xmlns="http://www.w3.org/2000/svg" style={{
                         position: "relative",
                         left: "1px",
                         color: "var(--color-text)",
                     }}>
-                        <path d="M2 1 L6 5 L2 9" stroke="currentColor" stroke-width="2" fill="none" />
+                        <path d="M2 1 L6 5 L2 9" stroke="currentColor" strokeWidth="2" fill="none" />
                     </svg>
                 </div>
             </div>

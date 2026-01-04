@@ -4,12 +4,22 @@ export class Page {
             (container) => container.ref !== refToRemove
         );
     }
+
     constructor(structureJSON, contentJSON) {
         this.structure = structureJSON;
         this.content = contentJSON;
         this.primaryContainerRef = null;
         this.subcontainers = [];
         this.triggerStructureRerender = null;
+        this.linkedNetHandler = null;
+    }
+
+    sendChange(blockId) {
+        if (!this.linkedNetHandler) {
+            console.log("No linkedNetHandler to send changes, dropping");
+            return;
+        }
+        this.linkedNetHandler.sendBlockChange(blockId, this.content[blockId]);
     }
 
     addTargetableSubcomponentContainer(subcontainer) {

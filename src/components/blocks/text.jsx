@@ -3,15 +3,14 @@ import { PageBlockSubcontainerComponent } from "../app/pageblock_subcontainer/co
 
 export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
     const subcontainerRef = useRef(null);
+
     useEffect(() => {
         pageRef.current.addTargetableSubcomponentContainer({
             canTarget: () => true,
             ref: subcontainerRef,
             blockId,
         });
-        // Don't remove on cleanup - let the page manage stale refs
-        // This prevents targets from disappearing during re-renders
-    }, [blockId]); // Remove pageRef from dependencies as it never changes
+    }, [blockId]);
 
     const textInputRef = useRef(null);
 
@@ -24,6 +23,7 @@ export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
     const handleTextChanged = (e) => {
         if (textInputRef.current) {
             data.textContent = textInputRef.current.innerText;
+            pageRef.current.sendChange(blockId);
             if (data.textContent.trim() === "") {
                 textInputRef.current.classList.add("showplaceholder");
             } else {
@@ -37,10 +37,20 @@ export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
         }
     };
 
+    useEffect(() => {
+        if (textInputRef.current) {
+            textInputRef.current.innerText = data.textContent || "";
+            if (!data.textContent || data.textContent.trim() === "") {
+                textInputRef.current.classList.add("showplaceholder");
+            } else {
+                textInputRef.current.classList.remove("showplaceholder");
+            }
+        }
+    }, [data.textContent]);
+
     return (
         <div ref={ref}>
             <div contentEditable onClick={handleTextClick} onBlur={handleTextLeave} onInput={handleTextChanged} ref={textInputRef} placeholder="Write text here... Type '/' for commands">
-                {data.textContent}
             </div>
             <div style={{ marginLeft: "20px" }}> {/* Indented children */}
                 <PageBlockSubcontainerComponent

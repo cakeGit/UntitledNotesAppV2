@@ -1,4 +1,4 @@
-import { createRef } from "react";
+import { createRef, useState } from "react";
 import { PageBlockWrapperComponent } from "../components/app/pageblock_wrapper/component.jsx";
 import { PageTextBlock } from "../components/blocks/text.jsx";
 
@@ -30,17 +30,15 @@ export function buildNodeChildrenSimple(children, content, pageRef) {
                 const blockRef =
                     pageRef.current.content[block.blockId].ref ||
                     createRef(null);
+                pageRef.current.content[block.blockId].ref = blockRef;
                 return (
                     <PageBlockWrapperComponent
                         key={block.blockId}
                         pageRef={pageRef}
                         blockId={block.blockId}
-                        data={content[block.blockId]}
                         wrapperRef={blockRef}
                     >
                         {(() => {
-                            pageRef.current.content[block.blockId].ref =
-                                blockRef;
                             return buildChildrenBlockForData(
                                 block.blockId,
                                 block.children,

@@ -109,18 +109,18 @@ export function createDragHandler(blockId, pageRef, wrapperRef, highlightRef) {
         };
 
         //Create highlight element if it doesn't exist
+        if (!window.blockHighlightElement) {
+            window.blockHighlightElement = document.createElement("div");
 
-        if (!highlightRef.current) {
-            highlightRef.current = document.createElement("div");
-            highlightRef.current.className = "page_block_highlight";
-            highlightRef.current.style.display = "none"; // Initially hidden
-            highlightRef.current.style.position = "absolute";
+            window.blockHighlightElement.className = "page_block_highlight";
+            window.blockHighlightElement.style.display = "none"; // Initially hidden
+            window.blockHighlightElement.style.position = "absolute";
 
             //The transitions seem to misbehave unless there is an explicit initial position
-            highlightRef.current.style.top = `0px`;
-            highlightRef.current.style.left = `0px`;
+            window.blockHighlightElement.style.top = `0px`;
+            window.blockHighlightElement.style.left = `0px`;
 
-            document.body.appendChild(highlightRef.current);
+            document.body.appendChild(window.blockHighlightElement);
             console.log("Highlight created");
         }
 
@@ -135,38 +135,38 @@ export function createDragHandler(blockId, pageRef, wrapperRef, highlightRef) {
             wrapperRef.current.style.transition = "none";
 
             //Update highlight position
-            if (highlightRef.current) {
+            if (window.blockHighlightElement) {
                 const target = getTargetableElementAndShift(e.clientY);
                 if (target) {
-                    highlightRef.current.style.display = "block";
+                    window.blockHighlightElement.style.display = "block";
                     const rect = target.element.getBoundingClientRect();
                     const yPos = getYPosOfTarget(target);
 
                     if (shouldMoveHighlightInstantly) {
-                        highlightRef.current.style.transition = "none";
+                        window.blockHighlightElement.style.transition = "none";
                         shouldMoveHighlightInstantly = false;
                     }
 
-                    highlightRef.current.style.top = `${yPos - 2}px`;
-                    highlightRef.current.style.left = `${rect.left}px`;
-                    highlightRef.current.style.width = `${rect.width}px`;
+                    window.blockHighlightElement.style.top = `${yPos - 2}px`;
+                    window.blockHighlightElement.style.left = `${rect.left}px`;
+                    window.blockHighlightElement.style.width = `${rect.width}px`;
 
                     // Force reflow by asking the CSS engine for a layout property,
                     // This is dark magic, but it ensures that the transition applies properly
-                    let _ = highlightRef.current.offsetHeight;
+                    let _ = window.blockHighlightElement.offsetHeight;
 
-                    highlightRef.current.style.transition = ""; //Re-enable transitions
+                    window.blockHighlightElement.style.transition = ""; //Re-enable transitions
                 } else {
-                    highlightRef.current.style.display = "none"; //Else hide highlight if nothing to target
+                    window.blockHighlightElement.style.display = "none"; //Else hide highlight if nothing to target
                     shouldMoveHighlightInstantly = true; //Make it so it will instantly reappear next time
                 }
             }
         };
 
         const mouseUp = (e) => {
-            //Remove the highlight
-            if (highlightRef.current) {
-                highlightRef.current.style.display = "none";
+            //"Remove" the highlight
+            if (window.blockHighlightElement) {
+                window.blockHighlightElement.style.display = "none";
                 shouldMoveHighlightInstantly = true;
             }
 
@@ -194,6 +194,7 @@ export function createDragHandler(blockId, pageRef, wrapperRef, highlightRef) {
                     target.position
                 );
                 pageRef.current.triggerStructureRerender();
+                pageRef.current.linkedNetHandler.sendStructureChange(currentPageStructure);
             }
 
             //Remove listeners

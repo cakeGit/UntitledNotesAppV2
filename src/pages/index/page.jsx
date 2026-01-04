@@ -18,10 +18,7 @@ function BuildPage() {
       return;
     }
     fetchApi("get_current_user_info")
-      .then(response => {
-        console.log(response);
-        setUser(response);
-      });
+      .then(setUser);
   });
 
   return (
