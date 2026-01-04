@@ -1,3 +1,7 @@
+function generateRandomUUID() {
+    return crypto.randomUUID();
+}
+
 export class Page {
     removeSubcontainer(refToRemove) {
         this.subcontainers = this.subcontainers.filter(
@@ -14,12 +18,58 @@ export class Page {
         this.linkedNetHandler = null;
     }
 
-    sendChange(blockId) {
+    checkForNetAndRun(runnable) {
         if (!this.linkedNetHandler) {
             console.log("No linkedNetHandler to send changes, dropping");
             return;
         }
-        this.linkedNetHandler.sendBlockChange(blockId, this.content[blockId]);
+        runnable();
+    }
+
+    sendChange(blockId) {
+        this.checkForNetAndRun(() =>
+            this.linkedNetHandler.sendBlockChange(
+                blockId,
+                this.content[blockId]
+            )
+        );
+    }
+
+    sendStructureChange(newStructure) {
+        this.checkForNetAndRun(() =>
+            this.linkedNetHandler.sendStructureChange(newStructure)
+        );
+    }
+
+    sendDeleted(blockId) {
+        this.checkForNetAndRun(() =>
+            this.linkedNetHandler.sendBlockDeletion(blockId)
+        );
+    }
+
+    sendNewBlock(adjacentBlockId, newBlockId) {
+        this.checkForNetAndRun(() =>
+            this.linkedNetHandler.sendNewBlock(
+                adjacentBlockId,
+                newBlockId,
+                this.content[newBlockId]
+            )
+        );
+    }
+
+    addNewBlock(blockType, blockIdBelow, initialData = {}) {
+        const newBlockId = generateRandomUUID();
+
+        this.content[newBlockId] = { type: blockType, ...initialData };
+
+        this.insertBlockAfter(blockIdBelow, newBlockId);
+        return newBlockId;
+    }
+
+    insertBlockAfter(adjacentBlockId, newBlockId) {
+        this.findAndPerform(adjacentBlockId, (children, index) => {
+            children.splice(index + 1, 0, { blockId: newBlockId });
+        });
     }
 
     addTargetableSubcomponentContainer(subcontainer) {
@@ -90,6 +140,31 @@ export class Page {
         return walkTreeForBlockId(this.structure, blockId) || [];
     }
 
+    deleteBlock(blockId) {
+        delete this.content[blockId];
+        function walkAndDelete(node, blockId) {
+            if (!node.children) return;
+
+            const index = node.children.findIndex(
+                (child) => child.blockId === blockId
+            );
+
+            if (index !== -1) {
+                node.children.splice(index, 1);
+                return;
+            }
+
+            for (const child of node.children) {
+                if (walkAndDelete(child, blockId)) {
+                    return;
+                }
+            }
+            return;
+        }
+
+        walkAndDelete(this.structure, blockId);
+    }
+
     /**
      * The primary container is always included, where the containing blockId is undefined.
      * @returns List in the form {element: HTMLElement, blockId: string (undefined for primary container)}
@@ -106,4 +181,19 @@ export class Page {
 
         return containers;
     }
+
+    findAndPerform(targetBlockId, performer, currentNode = this.structure) {
+        if (!currentNode.children) {
+            return;
+        }
+        for (let i = 0; i < currentNode.children.length; i++) {
+            const child = currentNode.children[i];
+            if (child.blockId === targetBlockId) {
+                performer(currentNode.children, i);
+                return;
+            }
+            this.findAndPerform(targetBlockId, performer, child);
+        }
+    }
+
 }

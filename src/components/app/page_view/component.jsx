@@ -3,6 +3,8 @@ import { Page } from "../../../foundation/page/page.js";
 import "./style.css";
 import { buildNodeChildrenSimple } from "../../../foundation/blockBuilder.jsx";
 import { LocalActivePage } from "../../../foundation/page/localActivePage.js";
+import { EmptyPageHint } from "../page_empty_hint/component.jsx";
+import { PageAddBlockPopover } from "../page_add_popover/component.jsx";
 
 export function PageViewComponent({ pageId }) {
     const socketRef = useRef(null);
@@ -15,28 +17,7 @@ export function PageViewComponent({ pageId }) {
     useEffect(() => {
         if (!pageRef.current) {
             pageRef.current = new Page(
-                {
-                    children: [
-                        {
-                            blockId: "textboxid",
-                            children: [
-                                {
-                                    blockId: "textboxid2",
-                                },
-                            ],
-                        },
-                    ],
-                },
-                {
-                    textboxid: {
-                        type: "textbox",
-                        textContent: "hey",
-                    },
-                    textboxid2: {
-                        type: "textbox",
-                        textContent: "hooo",
-                    },
-                }
+                { children: [] }, {}
             );
             window.pageRef = pageRef;
             if (linkedNetHandler.current) {
@@ -68,6 +49,10 @@ export function PageViewComponent({ pageId }) {
             pageRef.current.linkedNetHandler = pageNetHandler;
         }
 
+        ws.onopen = () => {
+            pageNetHandler.requestFullResync();
+        };
+
         linkedNetHandler.current = pageNetHandler;
 
         socketRef.current = ws;
@@ -79,11 +64,12 @@ export function PageViewComponent({ pageId }) {
 
     return (
         <div ref={primaryContainerRef} className="pageView">
-            {pageRef.current ? buildNodeChildrenSimple(
+            {pageRef.current ? pageRef.current.structure.children.length > 0 ? buildNodeChildrenSimple(
                 pageRef.current.structure.children,
                 pageRef.current.content,
                 pageRef
-            ) : null}
+            ) : <EmptyPageHint pageRef={pageRef.current}/> : null}
+            <PageAddBlockPopover pageRef={pageRef} />
         </div>
     );
 }

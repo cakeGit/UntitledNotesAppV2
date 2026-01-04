@@ -2,6 +2,8 @@ import { useRef, useState } from "react";
 import { buildBlockForData } from "../../../foundation/blockBuilder.jsx";
 import { createDragHandler } from "./drag.jsx";
 import "./style.css";
+import { createDeleteBlockHandler } from "./delete.jsx";
+import { createAddBlockHandler } from "./add.jsx";
 
 //Page block wrapper is a component that wraps each block in the page editor, provides drag and drop functionality
 export function PageBlockWrapperComponent({
@@ -25,15 +27,49 @@ export function PageBlockWrapperComponent({
             {buildBlockForData(blockId, data, children, pageRef, blockRef)}
             <div
                 ref={draggerRef}
-                onMouseDown={createDragHandler(
-                    blockId,
-                    pageRef,
-                    wrapperRef,
-                )}
+                onMouseDown={createDragHandler(blockId, pageRef, wrapperRef)}
                 className="page_block_dragger"
-                style={{ cursor: "grab", userSelect: "none" }}
+                style={{
+                    cursor: "grab",
+                    userSelect: "none",
+                    display: "inline-block",
+                }}
             >
                 &nbsp;:::&nbsp;
+            </div>
+            &nbsp;
+            <div
+                ref={draggerRef}
+                onMouseDown={createDeleteBlockHandler(
+                    blockId,
+                    pageRef,
+                    wrapperRef
+                )}
+                className="page_block_binner"
+                style={{
+                    cursor: "pointer",
+                    userSelect: "none",
+                    display: "inline-block",
+                }}
+            >
+                &nbsp;x&nbsp;
+            </div>
+            &nbsp;
+            <div
+                ref={draggerRef}
+                onMouseDown={createAddBlockHandler(
+                    blockId,
+                    pageRef,
+                    wrapperRef
+                )}
+                className="page_block_adder"
+                style={{
+                    cursor: "pointer",
+                    userSelect: "none",
+                    display: "inline-block",
+                }}
+            >
+                &nbsp;+&nbsp;
             </div>
         </div>
     );

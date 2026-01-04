@@ -6,23 +6,40 @@ export class LocalActivePage {
         this.ws = ws;
 
         ws.onmessage = (event) => {
+            const msg = JSON.parse(event.data);
             try {
-                handleLocalRequest(
-                    this.pageRef.current, ws, JSON.parse(event.data)
-                );
+                handleLocalRequest(this.pageRef.current, ws, msg);
             } catch (e) {
                 console.error("Error handling ws message for local editor:", e);
+                if (msg.type !== "full_sync") {
+                    console.log("Requesting full resync due to error");
+                    this.requestFullResync();
+                }
             }
         };
+    }
+
+    requestFullResync() {
+        const message = {
+            type: "needs_sync",
+        };
+        this.ws.send(JSON.stringify(message));
     }
 
     sendBlockChange(blockId, blockData) {
         const message = {
             type: "block_change",
             blockId: blockId,
-            content: this.getCleanNetworkData(blockData),
+            content: this.getCleanNetworkBlockData(blockData),
         };
-        console.log(message);
+        this.ws.send(JSON.stringify(message));
+    }
+
+    sendBlockDeletion(blockId) {
+        const message = {
+            type: "block_deletion",
+            blockId: blockId,
+        };
         this.ws.send(JSON.stringify(message));
     }
 
@@ -31,11 +48,21 @@ export class LocalActivePage {
             type: "structure_change",
             structure: structure,
         };
-        console.log(message);
         this.ws.send(JSON.stringify(message));
     }
 
-    getCleanNetworkData(blockData) {
+    sendNewBlock(adjacentBlockId, newBlockId, blockData) {
+        const message = {
+            type: "block_addition",
+            adjacentBlockId: adjacentBlockId,
+            newBlockId: newBlockId,
+            content: this.getCleanNetworkBlockData(blockData),
+        };
+        this.ws.send(JSON.stringify(message));
+    }
+
+    //Remove the react data since we cant send that, and it causes JSON to fail
+    getCleanNetworkBlockData(blockData) {
         let result = {};
         for (const key in blockData) {
             if (key != "ref" && key != "setData") {

@@ -194,7 +194,7 @@ export function createDragHandler(blockId, pageRef, wrapperRef, highlightRef) {
                     target.position
                 );
                 pageRef.current.triggerStructureRerender();
-                pageRef.current.linkedNetHandler.sendStructureChange(currentPageStructure);
+                pageRef.current.sendStructureChange(currentPageStructure);
             }
 
             //Remove listeners

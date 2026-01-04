@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { PageBlockSubcontainerComponent } from "../app/pageblock_subcontainer/component.jsx";
+import "./text.css";
 
 export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
     const subcontainerRef = useRef(null);
@@ -14,11 +15,11 @@ export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
 
     const textInputRef = useRef(null);
 
-    const handleTextClick = () => {
-        console.log("Text block clicked");
-        if (textInputRef.current) {
-        }
-    };
+    // const handleTextClick = () => {
+    //     console.log("Text block clicked");
+    //     if (textInputRef.current) {
+    //     }
+    // };
 
     const handleTextChanged = (e) => {
         if (textInputRef.current) {
@@ -50,7 +51,7 @@ export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
 
     return (
         <div ref={ref}>
-            <div contentEditable onClick={handleTextClick} onBlur={handleTextLeave} onInput={handleTextChanged} ref={textInputRef} placeholder="Write text here... Type '/' for commands">
+            <div className={"text_box_" + (data.subtype || "unknown")} contentEditable /*onClick={handleTextClick}*/ onBlur={handleTextLeave} onInput={handleTextChanged} ref={textInputRef} placeholder="Write text here... Type '/' for commands">
             </div>
             <div style={{ marginLeft: "20px" }}> {/* Indented children */}
                 <PageBlockSubcontainerComponent

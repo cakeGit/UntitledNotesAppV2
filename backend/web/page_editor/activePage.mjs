@@ -30,4 +30,57 @@ export class ActivePage {
         this.connectedClients = this.connectedClients.filter((clientWs) => clientWs !== ws);
     }
 
+    deleteBlock(blockId) {
+        delete this.content[blockId];
+        function walkAndDelete(node, blockId) {
+            if (!node.children) return;
+
+            const index = node.children.findIndex(
+                (child) => child.blockId === blockId
+            );
+            
+            if (index !== -1) {
+                node.children.splice(index, 1);
+                return;
+            }
+            
+            for (const child of node.children) {
+                if (walkAndDelete(child, blockId)) {
+                    return;
+                }
+            }
+            return;
+        }
+
+        walkAndDelete(this.structure, blockId);
+    }
+
+    insertBlockAfter(adjacentBlockId, newBlockId) {
+        this.findAndPerform(adjacentBlockId, (children, index) => {
+            children.splice(index + 1, 0, { blockId: newBlockId });
+        });
+    }
+
+    findAndPerform(targetBlockId, performer, currentNode = this.structure) {
+        if (!currentNode.children) {
+            return;
+        }
+        for (let i = 0; i < currentNode.children.length; i++) {
+            const child = currentNode.children[i];
+            if (child.blockId === targetBlockId) {
+                performer(currentNode.children, i);
+                return;
+            }
+            this.findAndPerform(targetBlockId, performer, child);
+        }
+    }
+
+    forwardToOtherClients(senderWs, msg) {
+        this.connectedClients.forEach((clientWs) => {
+            if (clientWs !== senderWs && clientWs.readyState === clientWs.OPEN) {
+                clientWs.send(JSON.stringify(msg));
+            }
+        });
+    }
+
 }
