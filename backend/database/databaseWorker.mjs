@@ -3,13 +3,12 @@ import {
     RequestError,
     RequestNeedsNewLoginError,
 } from "../web/foundation_safe/requestError.js";
+import { addAllDatabaseRoutes } from "./databaseRoutes.mjs";
 import {
     constructPageFromDatabase,
     writePageToDatabase,
-} from "./page_serialization/pageSerializer.mjs";
+} from "./page/pageSerializer.mjs";
 import { queries } from "./queries.mjs";
-import authDatabaseRoutes from "./routes/authDatabaseRoutes.mjs";
-import userDatabaseRoutes from "./routes/userDatabaseRoutes.mjs";
 import util from "util";
 
 function logTestQuery(db) {
@@ -88,7 +87,6 @@ function wrapDbForPromises(db) {
                 .split(";")
                 .map((s) => s.trim())
                 .filter((s) => s.length > 0);
-            console.log(params);
 
             return new Promise((resolve, reject) => {
                 for (const statement of statements) {
@@ -105,6 +103,7 @@ function wrapDbForPromises(db) {
                         }
                     });
                 }
+                resolve();
             });
         },
         getQueryOrThrow: (queryName) => {
@@ -130,6 +129,7 @@ export async function startDatabaseWorker(db) {
             name: "Test Page",
             ownerUserId: "d290f1ee-6c54-4b01-90e6-d701748f0851",
             pageId: "f0b5f960-204d-4c34-8392-d0bbd1c37d45",
+            notebookId: "a3bb189e-8bf9-3888-9912-ace4e6543002",
         },
         {
             children: [
@@ -185,8 +185,7 @@ function addEndpoint(type, handler) {
     requestRoutes[type] = handler;
 }
 
-userDatabaseRoutes(addEndpoint);
-authDatabaseRoutes(addEndpoint);
+addAllDatabaseRoutes(addEndpoint);
 
 async function handleDatabaseMessage(db, message) {
     let type = message.type;
@@ -213,21 +212,12 @@ async function handleDatabaseMessage(db, message) {
             response.success(result);
         }
     } catch (err) {
-        if (err instanceof RequestNeedsNewLoginError) {
-            process.send({
-                requestId,
-                status: "error",
-                needsNewLoginError: true,
-                error: err.message,
-            });
-            return;
-        }
-
         if (err instanceof RequestError) {
             process.send({
                 requestId,
                 status: "error",
                 requestError: true,
+                effect: err.effect,
                 error: err.message,
             });
             return;

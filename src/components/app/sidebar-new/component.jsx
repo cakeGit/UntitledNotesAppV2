@@ -3,7 +3,7 @@ import "./style.css";
 import { AppSidebarLineBreak } from "./lineBreak/component.jsx";
 import { AppSidebarNoteBookSelect } from "./noteBookSelect/component.jsx";
 
-export function AppSideBar() {
+export function AppSideBar({ currentNotebookName }) {
     const sidebarRef = useRef(null);
     const sidebarTagRef = useRef(null);
 
@@ -29,7 +29,7 @@ export function AppSideBar() {
                     These are all subject to change<br/>
                 </p>
                 <AppSidebarLineBreak />
-                <AppSidebarNoteBookSelect currentName="📕 | My notebook" />
+                <AppSidebarNoteBookSelect currentName={currentNotebookName} />
                 <p>
                     TODO<br/>
                     Unit 1<br/>

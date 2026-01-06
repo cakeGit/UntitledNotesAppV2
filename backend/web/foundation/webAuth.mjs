@@ -19,5 +19,11 @@ export async function getOrThrowAuthorizedUserUUIDOfRequest(req) {
         throw new RequestNeedsNewLoginError("Invalid auth_key cookie");
     }
 
+    //Check the user actually exists
+    let validUser = await dbInterface.sendRequest("check_user_exists", { userId: validUserAuth.user_id });
+    if (!validUser || !validUser.exists) {
+        throw new RequestNeedsNewLoginError("User linked to does not exist");
+    }
+
     return validUserAuth.user_id;
 }

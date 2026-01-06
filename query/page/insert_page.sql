@@ -1,1 +1,1 @@
-REPLACE INTO Pages (PageID, Name, OwnerUserID) VALUES (?, ?, ?);
+REPLACE INTO Pages (PageID, Name, OwnerUserID, NotebookID) VALUES (?, ?, ?, ?);

@@ -30,7 +30,7 @@ export async function fetchApi(endpoint, body = null, options = {}) {
         })
         .then(data => {
             if (data?.success === false) {
-                if (data.requires_new_login && window.location.pathname !== "/get_account") {
+                if (data.effect == "needs_new_login" && window.location.pathname !== "/get_account") {
                     window.location.href = "/get_account";
                 }
                 throw new UnsuccessfulResponseError(data);

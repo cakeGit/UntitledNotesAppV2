@@ -20,5 +20,5 @@ export function generateRandomUUID() {
 }
 
 export function generateRandomUUIDBlob() {
-    return getUUIDBlob(generateRandomUUID);
+    return getUUIDBlob(generateRandomUUID());
 }

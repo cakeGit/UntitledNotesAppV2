@@ -1,0 +1,1 @@
+SELECT * FROM Pages, Notebooks WHERE Pages.NotebookID = Notebooks.NotebookID AND Pages.NotebookID = ? LIMIT 1;

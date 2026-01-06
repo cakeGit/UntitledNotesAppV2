@@ -1,13 +1,15 @@
 /**
- * Denotes an error that is with the request not the server, and should send a 400 response rather than 500.
+ * Denotes an error that is with the request not the server
  */
 export class RequestError extends Error {
-    constructor(message) {
+    constructor(message, effect = "none") {
         super(message);
+        this.effect = effect;
     }
 }
+
 export class RequestNeedsNewLoginError extends RequestError {
-    constructor(message = "Request needs new login") {
-        super(message);
+    constructor(message) {
+        super(message, "needs_new_login");
     }
 }

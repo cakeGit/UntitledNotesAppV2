@@ -1,5 +1,5 @@
 import { logWeb } from "../logger.mjs";
-import { RequestError, RequestNeedsNewLoginError } from "./foundation_safe/requestError.js";
+import { RequestError } from "./foundation_safe/requestError.js";
 
 /**
  * A wrapper for express's router to simplify the error handling process.
@@ -36,10 +36,8 @@ export class ApiRouter {
 
                 res.json({ success: true, ...result });
             } catch (error) {
-                if (error instanceof RequestNeedsNewLoginError) {
-                    res.status(200).json({ success: false, requires_new_login: true, error: error.message });
-                } else if (error instanceof RequestError) {
-                    res.status(200).json({ success: false, error: error.message });
+                if (error instanceof RequestError) {
+                    res.status(200).json({ success: false, error: error.message, effect: error.effect });
                 } else {
                     logWeb("Internal server error in api:", error);
                     console.trace(error);

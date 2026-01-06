@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS Notebooks (
 CREATE TABLE IF NOT EXISTS Pages (
     PageID BLOB PRIMARY KEY,
     Name TEXT NOT NULL,
+    NotebookID BLOB NOT NULL,
     OwnerUserID BLOB NOT NULL,
     LastEditedTime TEXT,
     LastEditedUserID BLOB

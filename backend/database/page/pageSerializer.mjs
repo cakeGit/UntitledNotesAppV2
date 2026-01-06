@@ -50,7 +50,6 @@ export async function constructPageFromDatabase(db, pageId) {
     const nodes = {};
 
     blocksData = blocksData.map(block => {
-        console.log(block);
         const blockId = block.blockId;
 
         const thisNode = {
@@ -139,16 +138,7 @@ function convertToSQLParams(inputData) {
         taggedResult["$" + getSafeSqlEquivalent(getPascalCase(key))] = inputData[key];
     }
 
-    console.log(taggedResult);
     return taggedResult;
-}
-
-function checkPropertiesInQuery(query, inputParams) {
-    for (const param in inputParams) {
-        if (!query.includes(param)) {
-            logDb(`Warning: SQL query does not use parameter ${param}`);
-        }
-    }
 }
 
 export async function writePageToDatabase(db, pageMeta, structure, blocks) {
@@ -156,7 +146,8 @@ export async function writePageToDatabase(db, pageMeta, structure, blocks) {
     await db.run(db.getQueryOrThrow('page.insert_page'), [
         getUUIDBlob(pageMeta.pageId),
         pageMeta.name,
-        getUUIDBlob(pageMeta.ownerUserId)
+        getUUIDBlob(pageMeta.ownerUserId),
+        getUUIDBlob(pageMeta.notebookId),
     ]);
 
     const blockParentIdMap = {};
@@ -177,11 +168,8 @@ export async function writePageToDatabase(db, pageMeta, structure, blocks) {
     }
     walkStructureForParents(structure);
 
-    console.log("bpid map", blockParentIdMap);
-
     //Insert each block
     for (const blockId in blocks) {
-        console.log("Inserting block", blockId);
         const blockData = blocks[blockId];
 
         const parentBlockId = blockParentIdMap[blockId] || null;
@@ -195,9 +183,8 @@ export async function writePageToDatabase(db, pageMeta, structure, blocks) {
             type: blockData.type, //TODO: enfoce valid types
         });
 
-        checkPropertiesInQuery(db.getQueryOrThrow('page.insert_block'), inputParams);
-
         await db.runMultiple(db.getQueryOrThrow('page.insert_block'), inputParams);
-
+        console.log("Inserted block", blockId);
     }
+    console.log("Finished inserting page", pageMeta.pageId);
 }

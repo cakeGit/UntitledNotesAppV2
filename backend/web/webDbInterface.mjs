@@ -35,15 +35,14 @@ async function setup(databaseWorker) {
         }
 
         handleResponse(message) {
-            const { requestId, error, data } = message;
+            const { requestId, error, data, effect } = message;
             const requestToComplete = this.pendingRequests[requestId];
             if (requestToComplete) {
                 if (message.status === "success") {
                     requestToComplete.resolve(data);
                 } else {
                     logWeb("Database interface received error response:", error, JSON.stringify(message));
-                    requestToComplete.reject(message.requestError ? new RequestError(error) :
-                        message.needsNewLoginError ? new RequestNeedsNewLoginError(error) :
+                    requestToComplete.reject(message.requestError ? new RequestError(error, effect) :
                         new RequestError("Internal error" + error ? ": " + error : ""));
                 }
             }

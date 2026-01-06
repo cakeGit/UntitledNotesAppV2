@@ -1,0 +1,1 @@
+SELECT * FROM Notebooks WHERE OwnerUserID = ? LIMIT 1;

@@ -1,6 +1,6 @@
 import { logDb } from "../../logger.mjs";
 import { ALL_FIELDS_PRESENT } from "../../web/foundation_safe/validations.js";
-import { generateRandomUUID, getUUIDBlob, parseUUIDBlob } from "../uuidBlober.mjs";
+import { generateRandomUUID, generateRandomUUIDBlob, getUUIDBlob, parseUUIDBlob } from "../uuidBlober.mjs";
 import { issueNewAuthKeyForUserUUID } from "./authDatabaseRoutes.mjs";
 
 const FALLBACK_TAG_NAME_CHARS = 'abcdefghijklmnopqrstuvwxyz';
@@ -62,6 +62,10 @@ export default function userDatabaseRoutes(addEndpoint) {
 
         await db.run(query, [userUUIDBlob, userData.googleUserId, tagName, userData.displayName, userData.email, userData.profilePictureUrl]);
         
+        logDb(`Creating default notebook for user ${userData.displayName} (${userUUID})`);
+
+        await db.run(db.getQueryOrThrow('notebook.create_notebook'), [ generateRandomUUIDBlob(), "Your notes", userUUIDBlob ]);
+
         return { user_id: userUUID };
     });
     
@@ -74,5 +78,10 @@ export default function userDatabaseRoutes(addEndpoint) {
             email: userInfo.Email,
             profile_picture_url: userInfo.ProfilePictureUrl,
         };
+    });
+
+    addEndpoint("check_user_exists", async (db, message, response) => {
+        let row = await db.get(db.getQueryOrThrow('check_user_exists'), [ getUUIDBlob(message.userId) ]);
+        return { exists: row != undefined};
     });
 }
