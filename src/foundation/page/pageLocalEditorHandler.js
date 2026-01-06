@@ -50,6 +50,22 @@ export function handleLocalRequest(page, ws, msg) {
         page.structure = structure;
         page.content = content;
         page.triggerStructureRerender();
+    } else if (msg.type === "initial_page_data") {
+        const { 
+            metadata,
+            structure,
+            content
+        } = msg;
+        ALL_FIELDS_PRESENT.test({
+            metadata,
+            structure,
+            content
+        }).throwErrorIfInvalid();
+
+        page.metadata = metadata;
+        page.structure = structure;
+        page.content = content;
+        page.triggerStructureRerender();
     } else {
         console.warn("Unknown local editor message type:", msg.type);
     }

@@ -1,5 +1,6 @@
 import tk from "terminal-kit";
 import process from "process";
+import util from "util";
 var term = tk.terminal;
 
 const logQueue = [];
@@ -16,11 +17,7 @@ function processQueue() {
 }
 
 function getLogString(arg) {
-    //If its a json object, stringify it
-    if (arg.constructor === Object || Array.isArray(arg)) {
-        return JSON.stringify(arg);
-    }
-    return arg;
+    return typeof arg === "string" ? arg : util.inspect(arg, { showHidden: false, depth: 4, colors: true });
 }
 
 function collectContent(firstArg, allArgs) {
@@ -57,7 +54,7 @@ export function logDb(message) {
     process.send({ type: "log_db", content: content });
 }
 
-export function logWeb(message) {
+export async function logWeb(message) {
     //Put together the string but just for the queue to avoid race condition
     var content = collectContent(message, arguments);
     logQueue.push({
@@ -65,7 +62,10 @@ export function logWeb(message) {
         color: "cyan",
         content: content
     });
-    setTimeout(processQueue, 0);
+    return new Promise((resolve, reject) => setTimeout(() => {
+        processQueue();
+        resolve();
+    }, 0));;
 }
 
 export function logClus(group, message) {

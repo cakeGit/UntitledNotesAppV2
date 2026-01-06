@@ -42,7 +42,7 @@ export function PageViewComponent({ pageId }) {
     const primaryContainerRef = useRef(null);
 
     useEffect(() => {
-        const ws = new WebSocket(`ws://${window.location.host}/page_editor`);
+        const ws = new WebSocket(`ws://${window.location.host}/page_editor?pageId=${pageId}`);
 
         const pageNetHandler = new LocalActivePage(pageRef, ws);
         if (pageRef.current) {

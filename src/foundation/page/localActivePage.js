@@ -7,6 +7,17 @@ export class LocalActivePage {
 
         ws.onmessage = (event) => {
             const msg = JSON.parse(event.data);
+            if (msg.type === "invalid_close_connection") {
+                console.log("Closing local editor connection due to invalid message");
+                alert(msg.message || "Connection closed due to invalid message.");
+                if (msg.link_action == "goto_default_page") {
+                    console.log("Returning to default page as instructed");
+                    localStorage.clear("currentPageId");
+                    localStorage.clear("currentNotebookId");
+                    window.location.href = "/";
+                }
+                ws.close();
+            }
             try {
                 handleLocalRequest(this.pageRef.current, ws, msg);
             } catch (e) {

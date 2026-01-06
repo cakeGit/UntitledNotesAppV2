@@ -1,6 +1,13 @@
 import { handleRequest } from "./pageServerEditorHandler.mjs";
 
 function bindEvents(activePage, ws) {
+    ws.send(JSON.stringify({
+        type: "initial_page_data",
+        metadata: activePage.metadata,
+        structure: activePage.structure,
+        content: activePage.content,
+    }));
+
     ws.on("message", (msg) => {
         try {
             handleRequest(activePage, ws, JSON.parse(msg));
@@ -8,6 +15,7 @@ function bindEvents(activePage, ws) {
             console.error("Error handling ws message for editor:", e);
         }
     });
+    
     ws.on("close", () => {
         console.log("WebSocket connection to /page_editor closed");
         activePage.disconnectClient(ws);
@@ -15,7 +23,8 @@ function bindEvents(activePage, ws) {
 }
 
 export class ActivePage {
-    constructor(pageStructure, pageBlocks) {
+    constructor(pageMetadata, pageStructure, pageBlocks) {
+        this.metadata = pageMetadata;
         this.structure = pageStructure;
         this.content = pageBlocks;
         this.connectedClients = [];

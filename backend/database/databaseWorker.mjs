@@ -217,8 +217,8 @@ async function handleDatabaseMessage(db, message) {
                 requestId,
                 status: "error",
                 requestError: true,
-                effect: err.effect,
-                error: err.message,
+                errorEffect: err.effect,
+                errorMessage: err.message,
             });
             return;
         }

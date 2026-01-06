@@ -98,7 +98,7 @@ export async function constructPageFromDatabase(db, pageId) {
     sortChildren(structure);
 
     return {
-        meta: {
+        metadata: {
             pageId: parseUUIDBlob(pageData.PageID),
             name: pageData.Name,
             ownerUserId: parseUUIDBlob(pageData.OwnerUserID),

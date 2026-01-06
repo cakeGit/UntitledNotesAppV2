@@ -78,7 +78,14 @@ function BuildPage() {
                     <span color="grey">(hello user: {user?.label_name})</span>
                 </h1>
                 <AppLineBreak />
-                <PageViewComponent pageId={0}></PageViewComponent>
+
+                {currentPageId ? (
+                    <PageViewComponent
+                        pageId={currentPageId}
+                    ></PageViewComponent>
+                ) : (
+                    <div>Loading page...</div>
+                )}
             </PageCenterContent>
             {/* <CenterColumn>
         <h1>UntitledNotesApp</h1>

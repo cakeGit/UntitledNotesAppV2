@@ -1,10 +1,13 @@
-import { logClus, logDb, logWeb } from '../logger.mjs';
-import { RequestError } from './foundation_safe/requestError.js';
+import { logClus, logDb, logWeb } from "../logger.mjs";
+import { RequestError } from "./foundation_safe/requestError.js";
 
 let dbInterface = null;
 async function setup(databaseWorker) {
     //Wait for "database_ready" message from database worker before allowing queries
-    logClus("PRIMARY/DB_INTERFACE", "Setup invoked, binding listener to wait for database worker to be ready before web setup...");
+    logClus(
+        "PRIMARY/DB_INTERFACE",
+        "Setup invoked, binding listener to wait for database worker to be ready before web setup..."
+    );
 
     let clusterMessageHandler = (worker, message) => {};
 
@@ -17,7 +20,7 @@ async function setup(databaseWorker) {
         if (dbInterface) {
             dbInterface.handleResponse(message);
         }
-    }
+    };
 
     class DbInterface {
         constructor(worker) {
@@ -29,21 +32,38 @@ async function setup(databaseWorker) {
         sendRequest(type, payload) {
             return new Promise((resolve, reject) => {
                 const requestId = this.requestIdCounter++;
-                this.pendingRequests[requestId] = { resolve, reject };
+                this.pendingRequests[requestId] = {
+                    resolve,
+                    reject,
+                    stack: new Error().stack,
+                }; //Save the error stack trace so debugging wont suck
                 this.worker.send({ type, requestId, ...payload });
             });
         }
 
-        handleResponse(message) {
-            const { requestId, error, data, effect } = message;
+        async handleResponse(message) {
+            const { requestId, errorMessage, data, errorEffect } = message;
             const requestToComplete = this.pendingRequests[requestId];
             if (requestToComplete) {
                 if (message.status === "success") {
                     requestToComplete.resolve(data);
                 } else {
-                    logWeb("Database interface received error response:", error, JSON.stringify(message));
-                    requestToComplete.reject(message.requestError ? new RequestError(error, effect) :
-                        new RequestError("Internal error" + error ? ": " + error : ""));
+                    await logWeb(
+                        "Database interface received error response:",
+                        errorMessage,
+                        JSON.stringify(message)
+                    );
+                    const error = message.requestError
+                        ? new RequestError(errorMessage, errorEffect)
+                        : new RequestError(
+                              "Internal error" + errorMessage
+                                  ? ": " + errorMessage
+                                  : ""
+                          );
+                    const invokingError = new Error();
+                    invokingError.stack = requestToComplete.stack;
+                    error.cause = invokingError;
+                    requestToComplete.reject(error);
                 }
             }
         }
@@ -51,8 +71,11 @@ async function setup(databaseWorker) {
 
     await new Promise((resolve, reject) => {
         clusterMessageHandler = (message) => {
-            if (message === 'database_ready') {
-                logClus("PRIMARY/DB_INTERFACE", "Recived database ready signal, proceeding with web setup...");
+            if (message === "database_ready") {
+                logClus(
+                    "PRIMARY/DB_INTERFACE",
+                    "Recived database ready signal, proceeding with web setup..."
+                );
                 clusterMessageHandler = handleDatabaseResponse;
                 dbInterface = new DbInterface(databaseWorker);
                 logClus("PRIMARY/DB_INTERFACE", "Setting up main web...");
@@ -60,7 +83,6 @@ async function setup(databaseWorker) {
             }
         };
     });
-
 }
 
-export { setup, dbInterface};
+export { setup, dbInterface };
