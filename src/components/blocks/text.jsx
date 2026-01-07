@@ -23,7 +23,7 @@ export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
 
     const handleTextChanged = (e) => {
         if (textInputRef.current) {
-            data.textContent = textInputRef.current.innerText;
+            pageRef.current.content[blockId].textContent = textInputRef.current.innerText;
             pageRef.current.sendChange(blockId);
             if (data.textContent.trim() === "") {
                 textInputRef.current.classList.add("showplaceholder");

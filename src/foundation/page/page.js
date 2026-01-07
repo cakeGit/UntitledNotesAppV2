@@ -1,6 +1,10 @@
+import xxhash from "xxhash-wasm";
+
 function generateRandomUUID() {
     return crypto.randomUUID();
 }
+
+const hash = await xxhash();
 
 export class Page {
     removeSubcontainer(refToRemove) {
@@ -194,6 +198,17 @@ export class Page {
             }
             this.findAndPerform(targetBlockId, performer, child);
         }
+    }
+
+    getLocalHash() {
+        const contentForHash = {};
+        for (const blockId in this.content) {
+            contentForHash[blockId] = this.linkedNetHandler.getCleanNetworkBlockData(this.content[blockId])
+        }
+        const contentString = JSON.stringify(contentForHash);
+        const structureString = JSON.stringify(this.structure);
+        const hashValue = hash.h32(contentString + structureString);
+        return hashValue;
     }
 
 }

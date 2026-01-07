@@ -20,6 +20,13 @@ export class LocalActivePage {
             }
             try {
                 handleLocalRequest(this.pageRef.current, ws, msg);
+                if (msg.hash) {
+                    const localHash = this.pageRef.current.getLocalHash();
+                    if (localHash !== msg.hash) {
+                        console.log("Hash mismatch after handling message, requesting full resync");
+                        this.requestFullResync();
+                    }
+                }
             } catch (e) {
                 console.error("Error handling ws message for local editor:", e);
                 if (msg.type !== "full_sync") {

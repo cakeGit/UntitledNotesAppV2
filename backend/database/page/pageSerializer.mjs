@@ -14,6 +14,8 @@ function getCamelNameScheme(str) {
 //TODO: serializer and deserializer classes instead of one
 
 export async function constructPageFromDatabase(db, pageId) {
+    let startTime = performance.now();
+
     const pageIdBlob = getUUIDBlob(pageId);
     //Check the page exists and get metadata
     const pageData = await db.get(db.getQueryOrThrow('page.get_page'), [ pageIdBlob ]);
@@ -97,11 +99,25 @@ export async function constructPageFromDatabase(db, pageId) {
     }
     sortChildren(structure);
 
+    //Remove order
+    function clearOrder(node) {
+        if (!node.children) return;
+        for (const child of node.children) {
+            delete content[child.blockId].order;
+            clearOrder(child);
+        }
+    }
+    clearOrder(structure);
+
+    const timeDelta = performance.now() - startTime;
+    logDb(`Reading page took ${timeDelta} ms`)
+
     return {
         metadata: {
             pageId: parseUUIDBlob(pageData.PageID),
             name: pageData.Name,
             ownerUserId: parseUUIDBlob(pageData.OwnerUserID),
+            notebookId: parseUUIDBlob(pageData.NotebookID),
         },
         structure,
         content,
@@ -142,6 +158,8 @@ function convertToSQLParams(inputData) {
 }
 
 export async function writePageToDatabase(db, pageMeta, structure, blocks) {
+    const startTime = performance.now();
+    logDb("Writing page", pageMeta.pageId, "to database");
     //Insert page root data
     await db.run(db.getQueryOrThrow('page.insert_page'), [
         getUUIDBlob(pageMeta.pageId),
@@ -180,11 +198,11 @@ export async function writePageToDatabase(db, pageMeta, structure, blocks) {
             parentBlockId: parentBlockId ? getUUIDBlob(parentBlockId) : null,
             pageId: getUUIDBlob(pageMeta.pageId),
             order: blockOrderMap[blockId] || 0,
-            type: blockData.type, //TODO: enfoce valid types
+            type: blockData.type, //TODO: enfoce valid types only
         });
 
         await db.runMultiple(db.getQueryOrThrow('page.insert_block'), inputParams);
-        console.log("Inserted block", blockId);
+        logDb("Inserted block", blockId);
     }
-    console.log("Finished inserting page", pageMeta.pageId);
+    logDb("Finished inserting page", pageMeta.pageId, "in", performance.now() - startTime, "ms");
 }

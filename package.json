@@ -19,7 +19,8 @@
     "terminal-kit": "^3.1.2",
     "ua-parser-js": "^2.0.7",
     "vite-express": "^0.21.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xxhash-wasm": "^1.1.0"
   },
   "scripts": {
     "server": "node backend/index.js",

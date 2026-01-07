@@ -1,6 +1,9 @@
+import xxhash from "xxhash-wasm";
 import { handleRequest } from "./pageServerEditorHandler.mjs";
 
+//This method handles linking a websocket to the handling, as the actual message handler is a seperate module
 function bindEvents(activePage, ws) {
+    //Tell the client the current state of the page, including metadata (unlike a full sync)
     ws.send(JSON.stringify({
         type: "initial_page_data",
         metadata: activePage.metadata,
@@ -22,12 +25,15 @@ function bindEvents(activePage, ws) {
     });
 }
 
+const hash = await xxhash();
+
 export class ActivePage {
     constructor(pageMetadata, pageStructure, pageBlocks) {
         this.metadata = pageMetadata;
         this.structure = pageStructure;
         this.content = pageBlocks;
         this.connectedClients = [];
+        this.isDirty = false;
     }
 
     connectClient(ws) {
@@ -90,6 +96,21 @@ export class ActivePage {
                 clientWs.send(JSON.stringify(msg));
             }
         });
+    }
+
+    forwardToOtherClientsWithHash(senderWs, msg) {
+        this.forwardToOtherClients(senderWs, this.withHash(msg));
+    }
+
+    sendWithHash(ws, msg) {
+        ws.send(JSON.stringify(this.withHash(msg)));
+    }
+
+    withHash(msg) {
+        const contentString = JSON.stringify(this.content);
+        const structureString = JSON.stringify(this.structure);
+        const hashValue = hash.h32(contentString + structureString);
+        return { ...msg, hash: hashValue };
     }
 
 }

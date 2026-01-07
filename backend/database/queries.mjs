@@ -2,6 +2,7 @@
 
 import path from 'path';
 
+//Some path stuff to try find the query directory relative to this script
 const DB_WORKER_SCRIPT_DIR = import.meta.url.replace('file:///', '').replace('/queries.mjs', '');
 const QUERY_DIR = path.resolve(DB_WORKER_SCRIPT_DIR, '../../query');
 

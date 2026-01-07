@@ -32,16 +32,15 @@ import { ActivePage } from "./activePage.mjs";
 
 const activePages = {};
 
-async function loadPage(pageId, userId) {
+async function loadPage(pageId) {
     console.log("Loading page", pageId, "for editing.");
     const pageData = await dbInterface.sendRequest("get_page_data", {
         pageId,
-        userId,
     });
     if (!pageData) {
         throw new RequestError("Failed to load page " + pageId);
     }
-    logWeb(`Page ${pageId} has been loaded`)
+    logWeb(`Page ${pageId} has been loaded`);
     return new ActivePage(
         pageData.metadata,
         pageData.structure,
@@ -51,24 +50,34 @@ async function loadPage(pageId, userId) {
 
 const pageLoadThreads = {};
 async function loadPageSynchronously(pageId, userId) {
-    if (pageLoadThreads[pageId]) {
-        //Check the user has access
-        const accessState = await dbInterface.sendRequest("check_page_access", {
-            pageId,
-            userId,
-        });
-        if (!accessState.hasAccess) {
-            throw new RequestError(
-                "User does not have access to the page " + pageId,
-                "goto_default_page"
-            );
-        }
+    //Check the user has access, this can be done asynchronously
+    const accessState = await dbInterface.sendRequest("check_page_access", {
+        pageId,
+        userId,
+    });
 
-        return await pageLoadThreads[pageId];
+    if (!accessState.hasAccess) {
+        throw new RequestError(
+            "User does not have access to the page " + pageId,
+            //This is the linked action, which in this case, tells the client
+            // to reset what page they're looking at, as this one is unavaliable
+            //The server has an endpoint for "default_page", which at this point
+            // is some page the user is expected to be able to access
+            "goto_default_page"
+        );
     }
 
+    //If there is a thread made for loading this page, we bind to it and wait for it to give back a page
+    if (pageLoadThreads[pageId]) {
+        return activePages[pageId]
+            ? activePages[pageId] //Sometimes the page has loaded by the time we checked if they had access
+            : await pageLoadThreads[pageId];
+    }
+
+    //Create the loading thread and make it avaliable through the 'pageLoadThreads'
     pageLoadThreads[pageId] = new Promise(async (resolve, reject) => {
-        const pageData = await loadPage(pageId, userId).catch(reject);
+        const pageData = await loadPage(pageId) //Here we call the "unsafe" load page,
+            .catch(reject); //And make sure that if loading fails we fail the promise as well
         resolve(pageData);
         delete pageLoadThreads[pageId];
     });
@@ -102,11 +111,13 @@ export function addPageEditorRouterEndpoint(app) {
                 logWeb(
                     "User request to editor socket failed: " + error.message
                 );
-                ws.send(JSON.stringify({
-                    type: "invalid_close_connection",
-                    message: error.message,
-                    link_action: error.effect
-                }));
+                ws.send(
+                    JSON.stringify({
+                        type: "invalid_close_connection",
+                        message: error.message,
+                        link_action: error.effect,
+                    })
+                );
             } else {
                 throw error;
             }
@@ -114,3 +125,30 @@ export function addPageEditorRouterEndpoint(app) {
         }
     });
 }
+//60 second interval saver and deleter
+
+//Has to be unused for 2 intervals before it can be deleted, to avoid immediatley deleteing and recreating a page
+const pagesToClearIfNobodyIsUsing = {};
+
+setInterval(async () => {
+    for (const pageId in activePages) {
+        const page = activePages[pageId];
+        if (page.isDirty) {
+            await dbInterface.sendRequest("write_page_data", {
+                metadata: page.metadata,
+                structure: page.structure,
+                content: page.content,
+            });
+        }
+
+        if (page.connectedClients.length == 0) {
+            if (pagesToClearIfNobodyIsUsing[pageId] != false) {
+                delete activePages[pageId];
+            } else {
+                pagesToClearIfNobodyIsUsing[pageId] = true;
+            }
+        } else {
+            delete pagesToClearIfNobodyIsUsing[pageId];
+        }
+    }
+}, 1000 * 60);

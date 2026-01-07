@@ -1,10 +1,9 @@
 import { logWeb } from "../logger.mjs";
 import { RequestError } from "./foundation_safe/requestError.js";
 
-/**
- * A wrapper for express's router to simplify the error handling process.
- * It's a bit non-standard to send 200 responses with an error attached, but it makes it clearer whats expected behaviour that needs more formal client handling.
- */
+//A wrapper for express's router to simplify the error handling process.
+//It's a bit non-standard to send 200 responses with an error attached,
+// but it makes it clearer whats expected behaviour that needs more formal client handling.
 export class ApiRouter {
     constructor(expressRouter) {
         this.expressRouter = expressRouter;

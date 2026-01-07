@@ -36,18 +36,27 @@ function filterForPropertiesInQuery(query, inputParams) {
     return inputParams;
 }
 
-//It just works, or something
+//We take in the actual database (db) and then return a promise based API wrapper around it
+//This makes it much easier to work with async javascript code, avoiding long nested callbacks.
+//This also includes extended features for things like running multiple statements in one call, which is typically not allowed.
 function wrapDbForPromises(db) {
     return {
+        getQueryOrThrow: (queryName) => {
+            const query = queries[queryName]; //Load query from the queries module.
+            if (!query) { //If the query does not exist, throw an error, as described.
+                throw new Error("Query not found: " + queryName);
+            }
+            return query;
+        },
         get: (sql, params) => {
-            const tracedError = new Error("Failed to execute statement");
-            return new Promise((resolve, reject) => {
+            const tracedError = new Error("Failed to execute statement"); //Error that traces back to the function running the get call
+            return new Promise((resolve, reject) => { //We return a promise that resolves or rejects based on the db call
                 db.get(sql, params, (err, row) => {
                     if (err) {
                         console.error(err);
-                        reject(tracedError);
+                        reject(tracedError); //This means it was unsuccessful, and we reject the promise
                     } else {
-                        resolve(row);
+                        resolve(row); //This means it was successful, and we return the row
                     }
                 });
             });
@@ -83,13 +92,19 @@ function wrapDbForPromises(db) {
                 "Failed to execute multiple statements"
             );
 
+            //Break down the SQL in to the smaller statements
+            //This is an example of functional programming in javascript, using map and filter
             const statements = sql
                 .split(";")
                 .map((s) => s.trim())
                 .filter((s) => s.length > 0);
 
             return new Promise((resolve, reject) => {
+                let completedStatements = 0;
                 for (const statement of statements) {
+                    //Since not all params may be used in each statement, we filter them down to just the ones used
+                    //SQL requires named parameters to have a specific format, we generally use them in the form "$param"
+                    //This means I can search for those in the statement text safely
                     let subParams = filterForPropertiesInQuery(
                         statement,
                         structuredClone(params)
@@ -100,19 +115,17 @@ function wrapDbForPromises(db) {
                             console.error(err);
                             reject(tracedError);
                             return;
+                        } else {
+                            //We need to track when all statements are complete before resolving
+                            completedStatements++;
+                            if (completedStatements === statements.length) {
+                                resolve();
+                            }
                         }
                     });
                 }
-                resolve();
             });
-        },
-        getQueryOrThrow: (queryName) => {
-            const query = queries[queryName];
-            if (!query) {
-                throw new Error("Query not found: " + queryName);
-            }
-            return query;
-        },
+        }
     };
 }
 

@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS Users (
     DisplayName TEXT NOT NULL,
     Email TEXT NOT NULL,
     GoogleUserID TEXT, --May be NULL if the user deleted their account
-    ProfilePictureURL TEXT --Similarly may be NULL
+    ProfilePictureURL TEXT, --Similarly may be NULL
+    Deleted INTEGER NOT NULL DEFAULT 0 --SQLite has no BOOL, so integers are used with 0 = active, 1 = deleted
 );
 
 -- Notebook
