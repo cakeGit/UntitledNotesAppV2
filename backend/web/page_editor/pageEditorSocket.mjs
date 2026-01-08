@@ -75,11 +75,14 @@ async function loadPageSynchronously(pageId, userId) {
     }
 
     //Create the loading thread and make it avaliable through the 'pageLoadThreads'
+    logWeb("Creating load thread for page", pageId);
     pageLoadThreads[pageId] = new Promise(async (resolve, reject) => {
         const pageData = await loadPage(pageId) //Here we call the "unsafe" load page,
             .catch(reject); //And make sure that if loading fails we fail the promise as well
+        activePages[pageId] = pageData; //Make sure we make the page avaliable to editors before closing the load thread
         resolve(pageData);
-        delete pageLoadThreads[pageId];
+        delete pageLoadThreads[pageId]; //Now it is safe to delete
+        logWeb("Load thread for page", pageId, "has finished.");
     });
 
     return await pageLoadThreads[pageId];
@@ -97,14 +100,15 @@ export function addPageEditorRouterEndpoint(app) {
                 userId,
             }).throwRequestErrorIfInvalid();
 
-            if (!activePages[pageId]) {
-                activePages[pageId] = await loadPageSynchronously(
+            let currentPageEditor = activePages[pageId];
+
+            if (!currentPageEditor) {
+                currentPageEditor = await loadPageSynchronously(
                     pageId,
                     userId
                 );
             }
 
-            let currentPageEditor = activePages[pageId];
             currentPageEditor.connectClient(ws);
         } catch (error) {
             if (error instanceof RequestError) {

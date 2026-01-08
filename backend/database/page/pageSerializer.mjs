@@ -1,12 +1,12 @@
 import { logDb } from "../../logger.mjs";
-import { getUUIDBlob, parseUUIDBlob } from "../uuidBlober.mjs";
+import { generateRandomUUID, getUUIDBlob, parseUUIDBlob } from "../uuidBlober.mjs";
 
 function getCamelNameScheme(str) {
     if (str == "OrderIndex") {
         return "order";
     }
-    if (str.endsWith('ID')) {
-        str = str.slice(0, -2) + 'Id';
+    if (str.endsWith("ID")) {
+        str = str.slice(0, -2) + "Id";
     }
     return str.charAt(0).toLowerCase() + str.slice(1);
 }
@@ -18,24 +18,28 @@ export async function constructPageFromDatabase(db, pageId) {
 
     const pageIdBlob = getUUIDBlob(pageId);
     //Check the page exists and get metadata
-    const pageData = await db.get(db.getQueryOrThrow('page.get_page'), [ pageIdBlob ]);
+    const pageData = await db.get(db.getQueryOrThrow("page.get_page"), [
+        pageIdBlob,
+    ]);
 
     if (!pageData) {
         return null;
     }
 
     //Get blocks of the current page
-    let blocksData = await db.all(db.getQueryOrThrow('page.get_blocks'), [ pageIdBlob ]);
+    let blocksData = await db.all(db.getQueryOrThrow("page.get_blocks"), [
+        pageIdBlob,
+    ]);
 
     if (!blocksData) {
         return null;
     }
 
-    blocksData.map(block => {
+    blocksData.map((block) => {
         for (const key in block) {
             let value = block[key];
             delete block[key];
-            if (key.endsWith('ID')) {
+            if (key.endsWith("ID")) {
                 value = value ? parseUUIDBlob(value) : null;
             }
             const camelKey = getCamelNameScheme(key);
@@ -44,14 +48,14 @@ export async function constructPageFromDatabase(db, pageId) {
     });
 
     const structure = {
-        children: []
+        children: [],
     };
     const content = {};
 
     const parents = {};
     const nodes = {};
 
-    blocksData = blocksData.map(block => {
+    blocksData = blocksData.map((block) => {
         const blockId = block.blockId;
 
         const thisNode = {
@@ -75,7 +79,12 @@ export async function constructPageFromDatabase(db, pageId) {
         const parent = parents[blockId];
         if (parent) {
             if (!nodes[parent]) {
-                console.error("Parent block not found for block", blockId, "parent:", parent);
+                console.error(
+                    "Parent block not found for block",
+                    blockId,
+                    "parent:",
+                    parent
+                );
                 continue;
             }
             if (!nodes[parent].children) {
@@ -110,7 +119,7 @@ export async function constructPageFromDatabase(db, pageId) {
     clearOrder(structure);
 
     const timeDelta = performance.now() - startTime;
-    logDb(`Reading page took ${timeDelta} ms`)
+    logDb("Reading page took", timeDelta, "ms");
 
     return {
         metadata: {
@@ -137,8 +146,8 @@ export async function constructPageFromDatabase(db, pageId) {
 // }
 
 function getPascalCase(str) {
-    if (str.endsWith('Id')) {
-        str = str.slice(0, -2) + 'ID';
+    if (str.endsWith("Id")) {
+        str = str.slice(0, -2) + "ID";
     }
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
@@ -151,22 +160,57 @@ function convertToSQLParams(inputData) {
     const taggedResult = {};
 
     for (const key in inputData) {
-        taggedResult["$" + getSafeSqlEquivalent(getPascalCase(key))] = inputData[key];
+        taggedResult["$" + getSafeSqlEquivalent(getPascalCase(key))] =
+            inputData[key];
     }
 
     return taggedResult;
 }
 
-export async function writePageToDatabase(db, pageMeta, structure, blocks) {
+function shuffleBlockIds(sourceStructure, sourceContent) {
+    const oldToNewMap = {};
+
+    const newStructure = structuredClone(sourceStructure);
+    const newBlocks = {};
+
+    for (const oldBlockId in sourceContent) {
+        const newBlockId = generateRandomUUID();
+        oldToNewMap[oldBlockId] = newBlockId;
+        newBlocks[newBlockId] = structuredClone(sourceContent[oldBlockId]);
+    }
+
+    function walkAndReplaceIds(children) {
+        for (const child of children) {
+            const oldBlockId = child.blockId;
+            const newBlockId = oldToNewMap[oldBlockId];
+            if (!newBlockId) {
+                delete children[child];
+                logDb("Removed child with missing block ID:", oldBlockId);
+                continue;
+            }
+            if (child.children) {
+                walkAndReplaceIds(child.children);
+            }
+            child.blockId = newBlockId;
+        }
+    }
+
+    walkAndReplaceIds(newStructure.children);
+
+    return {
+        structure: newStructure,
+        content: newBlocks,
+    };
+}
+
+export async function writePageToDatabase(db, pageMeta, sourceStructure, sourceContent) {
     const startTime = performance.now();
     logDb("Writing page", pageMeta.pageId, "to database");
-    //Insert page root data
-    await db.run(db.getQueryOrThrow('page.insert_page'), [
-        getUUIDBlob(pageMeta.pageId),
-        pageMeta.name,
-        getUUIDBlob(pageMeta.ownerUserId),
-        getUUIDBlob(pageMeta.notebookId),
-    ]);
+
+    //This is somewhat silly, but to avoid the client sending specific block IDs that collide in the database,
+    //We can shuffle the block IDs here to new ones, that we know are valid and wont corrupt the database
+    let { structure, content } = shuffleBlockIds(sourceStructure, sourceContent);
+    logDb("Serializing", structure, content);
 
     const blockParentIdMap = {};
     const blockOrderMap = {};
@@ -186,23 +230,58 @@ export async function writePageToDatabase(db, pageMeta, structure, blocks) {
     }
     walkStructureForParents(structure);
 
-    //Insert each block
-    for (const blockId in blocks) {
-        const blockData = blocks[blockId];
+    // Start a transaction, this prevents constant writes with every incremental change,
+    // This also allows rollbacks when neccassary
+    await db.run("BEGIN TRANSACTION");
 
-        const parentBlockId = blockParentIdMap[blockId] || null;
-        
-        const inputParams = convertToSQLParams({
-            ...blockData,
-            blockId: getUUIDBlob(blockId),
-            parentBlockId: parentBlockId ? getUUIDBlob(parentBlockId) : null,
-            pageId: getUUIDBlob(pageMeta.pageId),
-            order: blockOrderMap[blockId] || 0,
-            type: blockData.type, //TODO: enfoce valid types only
-        });
+    try {
+        //Delete all existing blocks in this page
+        await db.run(db.getQueryOrThrow("page.delete_blocks_in_page"), [
+            getUUIDBlob(pageMeta.pageId),
+        ]);
 
-        await db.runMultiple(db.getQueryOrThrow('page.insert_block'), inputParams);
-        logDb("Inserted block", blockId);
+        //Insert page root data
+        await db.run(db.getQueryOrThrow("page.insert_page"), [
+            getUUIDBlob(pageMeta.pageId),
+            pageMeta.name,
+            getUUIDBlob(pageMeta.ownerUserId),
+            getUUIDBlob(pageMeta.notebookId),
+        ]);
+
+        //Insert each block
+        for (const blockId in content) {
+            const blockData = content[blockId];
+
+            const parentBlockId = blockParentIdMap[blockId] || null;
+
+            const inputParams = convertToSQLParams({
+                ...blockData,
+                blockId: getUUIDBlob(blockId),
+                parentBlockId: parentBlockId
+                    ? getUUIDBlob(parentBlockId)
+                    : null,
+                pageId: getUUIDBlob(pageMeta.pageId),
+                order: blockOrderMap[blockId] || 0,
+                type: blockData.type, //TODO: enfoce valid types only
+            });
+
+            await db.runMultiple(
+                db.getQueryOrThrow("page.insert_block"),
+                inputParams
+            );
+            logDb("Inserted block", blockId);
+        }
+        logDb(
+            "Finished inserting page",
+            pageMeta.pageId,
+            "in",
+            performance.now() - startTime,
+            "ms"
+        );
+        await db.run("COMMIT");
+    } catch (error) {
+        console.error("Error writing page to database:", error);
+        await db.run("ROLLBACK");
+        throw error;
     }
-    logDb("Finished inserting page", pageMeta.pageId, "in", performance.now() - startTime, "ms");
 }

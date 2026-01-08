@@ -43,17 +43,20 @@ function wrapDbForPromises(db) {
     return {
         getQueryOrThrow: (queryName) => {
             const query = queries[queryName]; //Load query from the queries module.
-            if (!query) { //If the query does not exist, throw an error, as described.
+            if (!query) {
+                //If the query does not exist, throw an error, as described.
                 throw new Error("Query not found: " + queryName);
             }
             return query;
         },
         get: (sql, params) => {
             const tracedError = new Error("Failed to execute statement"); //Error that traces back to the function running the get call
-            return new Promise((resolve, reject) => { //We return a promise that resolves or rejects based on the db call
+            return new Promise((resolve, reject) => {
+                //We return a promise that resolves or rejects based on the db call
                 db.get(sql, params, (err, row) => {
                     if (err) {
                         console.error(err);
+                        tracedError.cause = err;
                         reject(tracedError); //This means it was unsuccessful, and we reject the promise
                     } else {
                         resolve(row); //This means it was successful, and we return the row
@@ -67,6 +70,7 @@ function wrapDbForPromises(db) {
                 db.all(sql, params, (err, rows) => {
                     if (err) {
                         console.error(err);
+                        tracedError.cause = err;
                         reject(tracedError);
                     } else {
                         resolve(rows);
@@ -80,6 +84,7 @@ function wrapDbForPromises(db) {
                 db.run(sql, params, function (err) {
                     if (err) {
                         console.error(err);
+                        tracedError.cause = err;
                         reject(tracedError);
                     } else {
                         resolve();
@@ -113,6 +118,7 @@ function wrapDbForPromises(db) {
                     db.run(statement, subParams, function (err) {
                         if (err) {
                             console.error(err);
+                            tracedError.cause = err;
                             reject(tracedError);
                             return;
                         } else {
@@ -125,7 +131,7 @@ function wrapDbForPromises(db) {
                     });
                 }
             });
-        }
+        },
     };
 }
 
@@ -136,7 +142,7 @@ export async function startDatabaseWorker(db) {
 
     logTestQuery(db);
 
-    writePageToDatabase(
+    await writePageToDatabase(
         db,
         {
             name: "Test Page",
