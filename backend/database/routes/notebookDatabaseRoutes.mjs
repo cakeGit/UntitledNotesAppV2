@@ -1,5 +1,5 @@
 import { getWelcomePage } from "../page/welcomePage.mjs";
-import { writePageToDatabase } from "../page/pageSerializer.mjs";
+import { writePageToDatabase } from "../page/serializer.mjs";
 import { getUUIDBlob, parseUUIDBlob } from "../uuidBlober.mjs";
 import { RequestError } from "../../web/foundation_safe/requestError.js";
 

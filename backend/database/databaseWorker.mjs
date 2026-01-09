@@ -1,15 +1,12 @@
 import { logDb } from "../logger.mjs";
 import {
     RequestError,
-    RequestNeedsNewLoginError,
 } from "../web/foundation_safe/requestError.js";
 import { addAllDatabaseRoutes } from "./databaseRoutes.mjs";
-import {
-    constructPageFromDatabase,
-    writePageToDatabase,
-} from "./page/pageSerializer.mjs";
+import { runPageDataTest } from "./pageDataTest.mjs";
 import { queries } from "./queries.mjs";
-import util from "util";
+
+const RUN_PAGE_DATA_TEST = true;
 
 function logTestQuery(db) {
     //Run the "get_users" query as a test
@@ -142,37 +139,7 @@ export async function startDatabaseWorker(db) {
 
     logTestQuery(db);
 
-    await writePageToDatabase(
-        db,
-        {
-            name: "Test Page",
-            ownerUserId: "d290f1ee-6c54-4b01-90e6-d701748f0851",
-            pageId: "f0b5f960-204d-4c34-8392-d0bbd1c37d45",
-            notebookId: "a3bb189e-8bf9-3888-9912-ace4e6543002",
-        },
-        {
-            children: [
-                {
-                    blockId: "41779190-529c-48e6-ba63-05fd8351968e",
-                },
-            ],
-        },
-        {
-            "41779190-529c-48e6-ba63-05fd8351968e": {
-                type: "text",
-                textContent: "This is a test block.",
-            },
-        }
-    );
-    console.log(
-        util.inspect(
-            await constructPageFromDatabase(
-                db,
-                "f0b5f960-204d-4c34-8392-d0bbd1c37d45"
-            ),
-            { showHidden: false, depth: null, colors: true }
-        )
-    );
+    if (RUN_PAGE_DATA_TEST) runPageDataTest(db);
 
     logDb("Sending 'database_ready' message to primary process.");
     process.send("database_ready");

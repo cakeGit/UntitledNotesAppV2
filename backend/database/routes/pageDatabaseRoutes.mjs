@@ -1,9 +1,10 @@
-import { constructPageFromDatabase, writePageToDatabase } from "../page/pageSerializer.mjs";
+import { readPageFromDatabase } from "../page/deserializer.mjs";
+import { writePageToDatabase } from "../page/serializer.mjs";
 import { getUUIDBlob } from "../uuidBlober.mjs";
 
 export default function pageDatabaseRoutes(addEndpoint) {
     addEndpoint("get_page_data", async (db, message, response) => {
-        const pageData = await constructPageFromDatabase(db, message.pageId);
+        const pageData = await readPageFromDatabase(db, message.pageId);
 
         return pageData;
     });
