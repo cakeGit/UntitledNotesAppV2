@@ -2,6 +2,7 @@ import { getWelcomePage } from "../page/welcomePage.mjs";
 import { writePageToDatabase } from "../page/serializer.mjs";
 import { getUUIDBlob, parseUUIDBlob } from "../uuidBlober.mjs";
 import { RequestError } from "../../web/foundation_safe/requestError.js";
+import { logDb } from "../../logger.mjs";
 
 const notebookWelcomePageInsertionsByUser = {};
 
@@ -16,12 +17,12 @@ async function createWelcomePageThreadSafe(db, notebookId, userId) {
             userId,
             notebookId
         );
-        console.log("Inserting welcome page into database");
+        logDb("Inserting welcome page into database");
         await writePageToDatabase(db, metadata, structure, content);
         let newWelcomePageResult = await db.get(db.getQueryOrThrow("notebook.get_default_page"), [
             getUUIDBlob(notebookId),
         ]);
-        console.log("Inserted welcome page", newWelcomePageResult);
+        logDb("Inserted welcome page", newWelcomePageResult);
 
         delete notebookWelcomePageInsertionsByUser[key];
         resolve(newWelcomePageResult);

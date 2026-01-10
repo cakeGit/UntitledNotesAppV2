@@ -1,7 +1,5 @@
-import { logDb } from "../logger.mjs";
-import {
-    RequestError,
-} from "../web/foundation_safe/requestError.js";
+import { alertStyle, logDb, logDbWithWarningBlinker } from "../logger.mjs";
+import { RequestError } from "../web/foundation_safe/requestError.js";
 import { addAllDatabaseRoutes } from "./databaseRoutes.mjs";
 import { runPageDataTest } from "./pageDataTest.mjs";
 import { queries } from "./queries.mjs";
@@ -139,9 +137,10 @@ export async function startDatabaseWorker(db) {
 
     logTestQuery(db);
 
-    if (RUN_PAGE_DATA_TEST) runPageDataTest(db);
+    // if (RUN_PAGE_DATA_TEST) await runPageDataTest(db);
 
     logDb("Sending 'database_ready' message to primary process.");
+
     process.send("database_ready");
 
     //When we recive a message from the cluster primary process, handle database queries

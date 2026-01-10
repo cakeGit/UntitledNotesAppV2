@@ -5,19 +5,147 @@ var term = tk.terminal;
 
 const logQueue = [];
 
-function log(color, group, message) {
-    term[color](`[${group}] `).gray(`${new Date().toISOString()}: `).white(`${message}\n`);
+const ansiRedBg = "\u001b[41m";
+const ansiWhiteText = "\u001b[37m";
+const ansiReset = "\u001b[0m";
+
+//Evil hack from stack overflow to track how many lines have been printed to the terminal
+let globalScrollOffset = 0;
+
+// Intercept all terminal output to track line counts
+const originalWrite = process.stdout.write.bind(process.stdout);
+process.stdout.write = (chunk, encoding, callback) => {
+    const s = typeof chunk === "string" ? chunk : chunk.toString();
+    // Count newlines in the chunk to detect how much the screen has scrolled
+    const lines = (s.match(/\n/g) || []).length;
+    globalScrollOffset += lines;
+    return originalWrite(chunk, encoding, callback);
+};
+//End of evil hack
+
+function log(color, group, message, endLine = true, timestamp = new Date().toISOString()) {
+    term[color](`[${group}] `)
+        .gray(`${timestamp}: `)
+        .white(`${message}${endLine ? "\n" : ""}`);
 }
 
-function processQueue() {
+function getCurrentScreenY() {
+    return new Promise((resolve, reject) => {
+        term.getCursorLocation((error, x, y) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(y);
+            }
+        });
+    });
+}
+
+const blinkers = {};
+async function logWithWarningBlinker(color, group, message) {
+    if (blinkers[group]) {
+        delete blinkers[group];
+    }
+
+    // Get current position once and track relative to scroll offset
+    const startScreenY = await getCurrentScreenY();
+    const trackScroll = globalScrollOffset;
+
+    let timestamp = new Date().toISOString();
+    //Log normally first
+    log(color, group, message, true, timestamp);
+
+    blinkers[group] = {
+        blink: true,
+        remainingBlinks: 8,
+        handle: async () => {
+            const moveDelta = globalScrollOffset - trackScroll;
+            const gotoY = startScreenY - moveDelta;
+
+            // If offscreen we cant blink so return
+            if (gotoY < 1 || gotoY > term.height) {
+                blinkers[group].remainingBlinks -= 1;
+                if (blinkers[group].remainingBlinks <= 0) {
+                    delete blinkers[group];
+                }
+                return;
+            }
+
+            term.saveCursor();
+
+            term.moveTo(1, gotoY);
+
+            let blink = blinkers[group].blink;
+            blinkers[group].remainingBlinks -= 1;
+
+            if (blinkers[group].remainingBlinks <= 0) {
+                blink = false;
+            }
+
+            if (blink) {
+                term.bgRed();
+            }
+
+            term.column(1);
+            //Alert style inside needs to have the reset codes removed to avoid messing up the colors
+            log(color, group, blink ? message.replaceAll(ansiReset, "") : message, false, timestamp);
+            term.eraseLineAfter();
+            term.styleReset();
+
+            blinkers[group].blink = !blink;
+
+            term.restoreCursor();
+
+            if (blinkers[group].remainingBlinks <= 0) {
+                delete blinkers[group];
+            }
+        },
+        lastBlink: Date.now(),
+    };
+}
+
+let blinkerInterval = null;
+async function processQueue() {
     while (logQueue.length > 0) {
         let logItem = logQueue.shift();
-        log(logItem.color, logItem.group, logItem.content);
+        if (logItem.blinker === true) {
+            await logWithWarningBlinker(
+                logItem.color,
+                logItem.group,
+                logItem.content
+            );
+        } else {
+            log(logItem.color, logItem.group, logItem.content);
+        }
+    }
+    for (const group in blinkers) {
+        const blinker = blinkers[group];
+        const now = Date.now();
+        if (now - blinker.lastBlink >= 250) {
+            blinker.handle();
+            blinker.lastBlink = now;
+        }
+    }
+    let hasBlinkers = Object.keys(blinkers).length > 0;
+    if (hasBlinkers) {
+        if (!blinkerInterval) {
+            blinkerInterval = setInterval(processQueue, 20);
+        }
+    } else {
+        if (blinkerInterval) {
+            clearInterval(blinkerInterval);
+            blinkerInterval = null;
+        }
     }
 }
 
 function getLogString(arg) {
-    return typeof arg === "string" ? arg : util.inspect(arg, { showHidden: false, depth: 4, colors: true });
+    if (typeof arg === "number") {
+        arg = Math.round(arg * 100) / 100;
+    }
+    return typeof arg === "string"
+        ? arg
+        : util.inspect(arg, { showHidden: false, depth: 4, colors: true });
 }
 
 function collectContent(firstArg, allArgs) {
@@ -41,7 +169,8 @@ export function setupWorkerListener(worker) {
             logQueue.push({
                 group: "DB",
                 color: "magenta",
-                content: message.content
+                content: message.content,
+                blinker: message.blinker,
             });
             setTimeout(processQueue, 0);
         }
@@ -54,18 +183,45 @@ export function logDb(message) {
     process.send({ type: "log_db", content: content });
 }
 
+export function logDbWithWarningBlinker(message) {
+    var content = collectContent(message, arguments);
+    process.send({
+        type: "log_db",
+        content: content,
+        blinker: true,
+    });
+}
+
 export async function logWeb(message) {
     //Put together the string but just for the queue to avoid race condition
     var content = collectContent(message, arguments);
     logQueue.push({
         group: "WEB",
         color: "cyan",
-        content: content
+        content: content,
     });
-    return new Promise((resolve, reject) => setTimeout(() => {
-        processQueue();
-        resolve();
-    }, 0));;
+    return new Promise((resolve, reject) =>
+        setTimeout(() => {
+            processQueue();
+            resolve();
+        }, 0)
+    );
+}
+
+export async function logEditor(message) {
+    //Put together the string but just for the queue to avoid
+    var content = collectContent(message, arguments);
+    logQueue.push({
+        group: "EDITOR",
+        color: "blue",
+        content: content,
+    });
+    return new Promise((resolve, reject) =>
+        setTimeout(() => {
+            processQueue();
+            resolve();
+        }, 0)
+    );
 }
 
 export function logClus(group, message) {
@@ -76,7 +232,12 @@ export function logClus(group, message) {
     logQueue.push({
         group: `CLUS/${group}`,
         color: color,
-        content: message //Assume its just the one, i dont use extra args here
+        content: message, //Assume its just the one, i dont use extra args here
     });
     setTimeout(processQueue, 0);
+}
+
+//For putting alerts where theres red background white text
+export function alertStyle(text) {
+    return `${ansiRedBg}${ansiWhiteText}${text}${ansiReset}`;
 }

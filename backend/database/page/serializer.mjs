@@ -1,5 +1,14 @@
-import { logDb } from "../../logger.mjs";
+import { alertStyle, logDb, logDbWithWarningBlinker } from "../../logger.mjs";
 import { generateRandomUUID, getUUIDBlob } from "../uuidBlober.mjs";
+
+function logForOvertimeSeverity(durationMs, ...messageParts) {
+    const OVERTIME_THRESHOLD_MS = 50; //If it takes longer than 50ms, log with awesome warning blinker
+    if (durationMs > OVERTIME_THRESHOLD_MS) {
+        logDbWithWarningBlinker(alertStyle("Overtime alert!"), ...messageParts);
+    } else {
+        logDb(...messageParts);
+    }
+}
 
 function jsToSqlName(str) {
     if (str === "order") {
@@ -47,7 +56,11 @@ function shuffleBlockIds(sourceStructure, sourceContent) {
     };
 }
 
-function walkStructureForParentsAndOrder(structureNode, blockParentIdMap, blockOrderMap) {
+function walkStructureForParentsAndOrder(
+    structureNode,
+    blockParentIdMap,
+    blockOrderMap
+) {
     if (structureNode.blockId) {
         for (const child of structureNode.children || []) {
             blockParentIdMap[child.blockId] = structureNode.blockId;
@@ -84,6 +97,7 @@ export async function writePageToDatabase(
 
     // Start a transaction, this prevents constant writes with every incremental change,
     // This also allows rollbacks when neccassary
+    const transactionStartTime = performance.now();
     await db.run("BEGIN TRANSACTION");
 
     try {
@@ -96,7 +110,21 @@ export async function writePageToDatabase(
             blockOrderMap,
             startTime
         );
+        const commitStartTime = performance.now();
         await db.run("COMMIT");
+        const now = performance.now();
+        logForOvertimeSeverity(now - startTime,
+            "Finished writing page",
+            pageMeta.pageId,
+            "in",
+            now - startTime,
+            "ms",
+            "(DB write time",
+            now - transactionStartTime,
+            "ms of which",
+            now - commitStartTime,
+            "ms was commit)"
+        );
     } catch (error) {
         console.error("Error writing page to database:", error);
         await db.run("ROLLBACK");
@@ -114,7 +142,13 @@ function convertToSQLParams(inputData) {
     return taggedResult;
 }
 
-function getParametersOfBlockForWrite(blockData, blockId, parentBlockId, pageMeta, blockOrderMap) {
+function getParametersOfBlockForWrite(
+    blockData,
+    blockId,
+    parentBlockId,
+    pageMeta,
+    blockOrderMap
+) {
     return convertToSQLParams({
         ...blockData,
         blockId: getUUIDBlob(blockId),
@@ -130,8 +164,7 @@ async function performDatabaseWrite(
     pageMeta,
     content,
     blockParentIdMap,
-    blockOrderMap,
-    startTime
+    blockOrderMap
 ) {
     await db.run(db.getQueryOrThrow("page.delete_blocks_in_page"), [
         getUUIDBlob(pageMeta.pageId),
@@ -146,21 +179,19 @@ async function performDatabaseWrite(
 
         const parentBlockId = blockParentIdMap[blockId] || null;
 
-        const inputParams = getParametersOfBlockForWrite(blockData, blockId, parentBlockId, pageMeta, blockOrderMap);
+        const inputParams = getParametersOfBlockForWrite(
+            blockData,
+            blockId,
+            parentBlockId,
+            pageMeta,
+            blockOrderMap
+        );
 
         await db.runMultiple(
             db.getQueryOrThrow("page.insert_block"),
             inputParams
         );
-        logDb("Inserted block", blockId);
     }
-    logDb(
-        "Finished inserting page",
-        pageMeta.pageId,
-        "in",
-        performance.now() - startTime,
-        "ms"
-    );
 }
 
 async function writePageMetadata(db, pageMeta) {

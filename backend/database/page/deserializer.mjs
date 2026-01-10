@@ -68,6 +68,10 @@ export async function readPageFromDatabase(db, pageId) {
     //Extract structure information and create the clean block data
     contentRows.forEach((block) => {
         const blockId = block.blockId;
+        if (blockId == null) {
+            logDb("Skipping block with null ID", block);
+            return;
+        }
 
         //Create the element of the structure tree
         const thisNode = {

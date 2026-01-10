@@ -1,3 +1,4 @@
+import { logEditor } from "../../logger.mjs";
 import { ALL_FIELDS_PRESENT } from "../foundation_safe/validations.js";
 
 export function handleRequest(activePage, ws, msg) {
@@ -54,6 +55,6 @@ export function handleRequest(activePage, ws, msg) {
         };
         activePage.sendWithHash(ws, message);
     } else {
-        console.warn("Unknown page server editor message type:", msg.type);
+        logEditor("Unknown page server editor message type:", msg.type);
     }
 }

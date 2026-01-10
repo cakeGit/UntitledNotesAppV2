@@ -1,4 +1,4 @@
-import { logWeb } from "../../logger.mjs";
+import { logEditor, logWeb } from "../../logger.mjs";
 import { getOrThrowAuthorizedUserUUIDOfRequest } from "../foundation/webAuth.mjs";
 import { RequestError } from "../foundation_safe/requestError.js";
 import { ALL_FIELDS_PRESENT } from "../foundation_safe/validations.js";
@@ -91,7 +91,7 @@ async function loadPageSynchronously(pageId, userId) {
 export function addPageEditorRouterEndpoint(app) {
     app.ws("/page_editor", async (ws, req) => {
         try {
-            console.log("New WebSocket connection to /page_editor");
+            logEditor("New WebSocket connection to /page_editor");
             const userId = await getOrThrowAuthorizedUserUUIDOfRequest(req);
             const { pageId } = req.query;
 
@@ -112,8 +112,8 @@ export function addPageEditorRouterEndpoint(app) {
             currentPageEditor.connectClient(ws);
         } catch (error) {
             if (error instanceof RequestError) {
-                logWeb(
-                    "User request to editor socket failed: " + error.message
+                logEditor(
+                    "User request to open editor socket failed: " + error.message
                 );
                 ws.send(
                     JSON.stringify({
@@ -155,4 +155,4 @@ setInterval(async () => {
             delete pagesToClearIfNobodyIsUsing[pageId];
         }
     }
-}, 1000 * 60);
+}, 1000 * 30);

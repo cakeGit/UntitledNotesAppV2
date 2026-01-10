@@ -1,5 +1,6 @@
 import xxhash from "xxhash-wasm";
 import { handleRequest } from "./pageServerEditorHandler.mjs";
+import { logEditor } from "../../logger.mjs";
 
 //This method handles linking a websocket to the handling, as the actual message handler is a seperate module
 function bindEvents(activePage, ws) {
@@ -15,12 +16,21 @@ function bindEvents(activePage, ws) {
         try {
             handleRequest(activePage, ws, JSON.parse(msg));
         } catch (e) {
-            console.error("Error handling ws message for editor:", e);
+            const message = {
+                type: "full_sync",
+                structure: activePage.structure,
+                content: activePage.content,
+            };
+            activePage.sendWithHash(ws, message);
+
+            logEditor("Error handling ws message for editor, force syncing:", e);
+            logEditor("Page content", activePage.content);
+            logEditor("Page structure", activePage.structure);
         }
     });
     
     ws.on("close", () => {
-        console.log("WebSocket connection to /page_editor closed");
+        logEditor("Editor client disconnected from page:", activePage.metadata.pageId);
         activePage.disconnectClient(ws);
     });
 }
