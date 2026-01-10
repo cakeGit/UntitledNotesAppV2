@@ -5,7 +5,7 @@ import { PageCenterContent } from "../../components/layout/pageCenterContent/com
 import "./App.css";
 
 import { withAuthCheck } from "../../foundation/authApi.js";
-import { fetchApi } from "../../foundation/api.js";
+import { fetchApi, fetchApiCached } from "../../foundation/api.js";
 import { useEffect, useState } from "react";
 
 function BuildPage() {
@@ -13,31 +13,41 @@ function BuildPage() {
 
     let [user, setUser] = useState(null);
 
-    useEffect(() => {
-        if (user) {
-            return;
-        }
-        fetchApi("get_current_user_info").then(setUser);
-    });
+    // const [currentNotebookId, setNotebook] = useState(
+    //     localStorage.getItem("currentNotebookId") || null
+    // );
+    // const [currentNotebookName, setNotebookName] = useState(
+    //     localStorage.getItem("currentNotebookName") || null
+    // );
 
-    const [currentNotebookId, setNotebook] = useState(
-        localStorage.getItem("currentNotebookId") || null
-    );
-    const [currentNotebookName, setNotebookName] = useState(
-        localStorage.getItem("currentNotebookName") || null
-    );
+    // const [currentPageId, setPageId] = useState(
+    //     localStorage.getItem("currentPageId") || null
+    // );
 
-    const [currentPageId, setPageId] = useState(
-        localStorage.getItem("currentPageId") || null
-    );
+    if (!user) {
+        fetchApi("get_current_user_info")
+            .then((data) => {
+                setUser(data);
+            })
+            .catch((error) => {
+                console.error("Failed to get current user:", error);
+            });
+        return <></>;
+    }
 
-    if (!currentNotebookId || !currentNotebookName) {
+    //Read query params for notebook_id and page_id
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentNotebookId = urlParams.get("notebook_id");
+    const currentPageId = urlParams.get("page_id");
+
+    if (!currentNotebookId) {
         fetchApi("notebook/get_default_notebook")
             .then((data) => {
-                localStorage.setItem("currentNotebookId", data.notebook_id);
-                localStorage.setItem("currentNotebookName", data.name);
-                setNotebook(data.notebook_id);
-                setNotebookName(data.name);
+                // localStorage.setItem("currentNotebookId", data.notebook_id);
+                // localStorage.setItem("currentNotebookName", data.name);
+                window.location.href = "/?notebook_id=" + data.notebook_id;
+                // setNotebook(data.notebook_id);
+                // setNotebookName(data.name);
             })
             .catch((error) => {
                 console.error("Failed to get default notebook:", error);
@@ -48,10 +58,10 @@ function BuildPage() {
             notebook_id: currentNotebookId,
         }).catch((error) => {
             console.error("No access to notebook:", error);
-            localStorage.removeItem("currentNotebookId");
-            localStorage.removeItem("currentNotebookName");
-            setNotebook(null);
-            setNotebookName(null);
+            // localStorage.removeItem("currentNotebookId");
+            // localStorage.removeItem("currentNotebookName");
+            // setNotebook(null);
+            // setNotebookName(null);
         });
     }
 
@@ -60,7 +70,12 @@ function BuildPage() {
             notebook_id: currentNotebookId,
         })
             .then((data) => {
-                localStorage.setItem("currentPageId", data.page_id);
+                // localStorage.setItem("currentPageId", data.page_id);
+                window.location.href =
+                    "/?notebook_id=" +
+                    currentNotebookId +
+                    "&page_id=" +
+                    data.page_id;
                 setPageId(data.page_id);
             })
             .catch((error) => {
@@ -71,7 +86,9 @@ function BuildPage() {
 
     return (
         <div>
-            <AppSideBar currentNotebookName={currentNotebookName} />
+            <AppSideBar
+                currentNotebookId={currentNotebookId}
+            />
             <PageCenterContent>
                 <h1>
                     Pagepagepage{" "}

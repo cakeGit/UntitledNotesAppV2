@@ -68,7 +68,8 @@ export function PageViewComponent({ pageId }) {
                 pageRef.current.structure.children,
                 pageRef.current.content,
                 pageRef
-            ) : <EmptyPageHint pageRef={pageRef.current}/> : null}
+            ) : <EmptyPageHint pageRef={pageRef}/> : null}
+
             <PageAddBlockPopover pageRef={pageRef} />
         </div>
     );

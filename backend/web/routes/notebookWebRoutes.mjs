@@ -20,9 +20,9 @@ export default function notebookWebRoutes(apiRouter) {
 
     apiRouter.for("/notebook/check_notebook_access", async (req) => {
         let userId = await getOrThrowAuthorizedUserUUIDOfRequest(req);
-        //Check if the user has access to the given notebook
         let notebookId = req.body?.notebook_id;
         ALL_FIELDS_PRESENT.test({ notebookId }).throwRequestErrorIfInvalid();
         return await dbInterface.sendRequest("notebook/check_notebook_access", { notebookId, userId });
     });
+
 }

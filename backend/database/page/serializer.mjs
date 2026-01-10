@@ -2,7 +2,7 @@ import { alertStyle, logDb, logDbWithWarningBlinker } from "../../logger.mjs";
 import { generateRandomUUID, getUUIDBlob } from "../uuidBlober.mjs";
 
 function logForOvertimeSeverity(durationMs, ...messageParts) {
-    const OVERTIME_THRESHOLD_MS = 50; //If it takes longer than 50ms, log with awesome warning blinker
+    const OVERTIME_THRESHOLD_MS = 150; //If it takes longer than 150ms, log with awesome warning blinker
     if (durationMs > OVERTIME_THRESHOLD_MS) {
         logDbWithWarningBlinker(alertStyle("Overtime alert!"), ...messageParts);
     } else {
@@ -166,9 +166,9 @@ async function performDatabaseWrite(
     blockParentIdMap,
     blockOrderMap
 ) {
-    await db.run(db.getQueryOrThrow("page.delete_blocks_in_page"), [
-        getUUIDBlob(pageMeta.pageId),
-    ]);
+    await db.runMultiple(db.getQueryOrThrow("page.delete_blocks_in_page"), {
+        $pageId: getUUIDBlob(pageMeta.pageId),
+    });
 
     //Insert page root data
     await writePageMetadata(db, pageMeta);

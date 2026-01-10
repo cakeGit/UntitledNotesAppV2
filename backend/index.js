@@ -1,3 +1,5 @@
+export const serverStartTime = performance.now();
+
 import cluster from 'node:cluster';
 import { logClus, setupWorkerListener } from './logger.mjs';
 

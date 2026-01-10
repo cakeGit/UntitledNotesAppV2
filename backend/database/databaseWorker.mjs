@@ -4,7 +4,7 @@ import { addAllDatabaseRoutes } from "./databaseRoutes.mjs";
 import { runPageDataTest } from "./pageDataTest.mjs";
 import { queries } from "./queries.mjs";
 
-const RUN_PAGE_DATA_TEST = true;
+const RUN_PAGE_DATA_TEST = false;
 
 function logTestQuery(db) {
     //Run the "get_users" query as a test
@@ -137,7 +137,7 @@ export async function startDatabaseWorker(db) {
 
     logTestQuery(db);
 
-    // if (RUN_PAGE_DATA_TEST) await runPageDataTest(db);
+    if (RUN_PAGE_DATA_TEST) await runPageDataTest(db);
 
     logDb("Sending 'database_ready' message to primary process.");
 
@@ -182,7 +182,7 @@ async function handleDatabaseMessage(db, message) {
             process.send({ requestId, status: "success", data });
         },
         error: (errorMessage) => {
-            process.send({ requestId, status: "error", error: errorMessage });
+            process.send({ requestId, status: "error", errorMessage: errorMessage });
         },
     };
 

@@ -74,7 +74,7 @@ export function PageAddBlockPopover({ pageRef }) {
 
         let newBlockId = pageRef.current.addNewBlock(
             BLOCK_REGISTRY[selectedAddBlockRef.current].type, //Convert the registry id, i.e "textHeader", to the actual block type, i.e. "text"
-            adjacentBlockIdRef.current.type,
+            adjacentBlockIdRef.current,
             selectedAddBlockRef.current in BLOCK_REGISTRY
                 ? BLOCK_REGISTRY[selectedAddBlockRef.current].defaultData
                 : {}

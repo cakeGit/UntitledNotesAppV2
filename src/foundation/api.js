@@ -9,7 +9,29 @@ export class UnsuccessfulResponseError extends Error {
     }
 }
 
+const fetchesInProgress = {};
+const cachedFetches = {};
+
+export async function fetchApiCached(endpoint, body = null, options = {}) {
+    let cacheKey = endpoint + JSON.stringify(body || {});
+    if (cachedFetches[cacheKey]) {
+        return cachedFetches[cacheKey];
+    }
+    
+    const fetchPromise = fetchApi(endpoint, body, options);
+    cachedFetches[cacheKey] = fetchPromise;
+
+    try {
+        return await fetchPromise;
+    } finally {
+        delete cachedFetches[cacheKey];
+    }
+}
+
 export async function fetchApi(endpoint, body = null, options = {}) {
+    if (fetchesInProgress[endpoint]) {
+        return fetchesInProgress[endpoint];
+    }
     let url = window.location.origin + "/api/" + endpoint;
     let fetchOptions = {
         method: body ? 'POST' : 'GET',
@@ -21,7 +43,7 @@ export async function fetchApi(endpoint, body = null, options = {}) {
     if (body) {
         fetchOptions.body = JSON.stringify(body);
     }
-    return fetch(url, fetchOptions)
+    const fetchInProgress = fetch(url, fetchOptions)
         .then(response => {
             // if (!response.ok) {
             //     throw new Error('Failed to fetch api: ' + response.statusText);
@@ -37,4 +59,10 @@ export async function fetchApi(endpoint, body = null, options = {}) {
             }
             return data;
         });
+    fetchesInProgress[endpoint] = fetchInProgress;
+    try {
+        return await fetchInProgress;
+    } finally {
+        delete fetchesInProgress[endpoint];
+    }
 }

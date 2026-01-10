@@ -2,8 +2,12 @@ import { useRef } from "react";
 import "./style.css";
 import { AppSidebarLineBreak } from "./lineBreak/component.jsx";
 import { AppSidebarNoteBookSelect } from "./noteBookSelect/component.jsx";
+import { NotebookStructureView } from "./notebook_Structure/component.jsx";
 
-export function AppSideBar({ currentNotebookName }) {
+export function AppSideBar({
+    currentNotebookName,
+    currentNotebookId,
+}) {
     const sidebarRef = useRef(null);
     const sidebarTagRef = useRef(null);
 
@@ -17,45 +21,58 @@ export function AppSideBar({ currentNotebookName }) {
     };
 
     return (
-        <div>    
+        <div>
             <div ref={sidebarRef} className="app_sidebar">
-                <div className="app_sidebar_logo"><b>open</b>book 📖</div>
+                <div className="app_sidebar_logo">
+                    <b>open</b>book 📖
+                </div>
                 <AppSidebarLineBreak />
                 <p>
-                    Example list of app directory<br/>
-                    Settings<br/>
-                    Sign in/out<br/>
-                    Account<br/>
-                    These are all subject to change<br/>
+                    Example list of app directory
+                    <br />
+                    Settings
+                    <br />
+                    Sign in/out
+                    <br />
+                    Account
+                    <br />
+                    These are all subject to change
+                    <br />
                 </p>
                 <AppSidebarLineBreak />
                 <AppSidebarNoteBookSelect currentName={currentNotebookName} />
-                <p>
-                    TODO<br/>
-                    Unit 1<br/>
-                    → 1.1 Example subject<br/>
-                    → 1.2 Example other<br/>
-                    → 1.3 Example some more<br/>
-                    → 1.4 More content in example<br/>
-                    → 1.5 Example subject<br/>
-                </p>
+                <NotebookStructureView notebookId={currentNotebookId} />
                 <div ref={sidebarRef} className="app_sidebar_pull_tab">
-                    <svg className="chevron" viewBox="0 0 10 10" width="10" height="10" xmlns="http://www.w3.org/2000/svg" style={{
-                        position: "relative",
-                        left: "1px",
-                        color: "var(--color-text)",
-                    }}>
-                        <path d="M2 1 L6 5 L2 9" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <svg
+                        className="chevron"
+                        viewBox="0 0 10 10"
+                        width="10"
+                        height="10"
+                        xmlns="http://www.w3.org/2000/svg"
+                        style={{
+                            position: "relative",
+                            left: "1px",
+                            color: "var(--color-text)",
+                        }}
+                    >
+                        <path
+                            d="M2 1 L6 5 L2 9"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            fill="none"
+                        />
                     </svg>
                 </div>
             </div>
-            <div 
+            <div
                 ref={sidebarTagRef}
                 onMouseEnter={startShowingAppSidebar}
-                className="app_sidebar_hover_tag">
-            </div>
-            <div className="app_sidebar_hover_out_box"
-                onMouseLeave={stopShowingAppSidebar}/>
+                className="app_sidebar_hover_tag"
+            ></div>
+            <div
+                className="app_sidebar_hover_out_box"
+                onMouseLeave={stopShowingAppSidebar}
+            />
         </div>
-    )
+    );
 }

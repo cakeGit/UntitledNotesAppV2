@@ -42,7 +42,7 @@ function getCurrentScreenY() {
 }
 
 const blinkers = {};
-async function logWithWarningBlinker(color, group, message) {
+async function logWithWarningBlinker(color, group, message, blinkerColor = "bgRed") {
     if (blinkers[group]) {
         delete blinkers[group];
     }
@@ -57,7 +57,7 @@ async function logWithWarningBlinker(color, group, message) {
 
     blinkers[group] = {
         blink: true,
-        remainingBlinks: 8,
+        remainingBlinks: 6,
         handle: async () => {
             const moveDelta = globalScrollOffset - trackScroll;
             const gotoY = startScreenY - moveDelta;
@@ -83,7 +83,7 @@ async function logWithWarningBlinker(color, group, message) {
             }
 
             if (blink) {
-                term.bgRed();
+                term[blinkerColor]();
             }
 
             term.column(1);
@@ -100,7 +100,7 @@ async function logWithWarningBlinker(color, group, message) {
                 delete blinkers[group];
             }
         },
-        lastBlink: Date.now(),
+        lastBlink: 0,
     };
 }
 
@@ -112,7 +112,8 @@ async function processQueue() {
             await logWithWarningBlinker(
                 logItem.color,
                 logItem.group,
-                logItem.content
+                logItem.content,
+                logItem.blinkerColor
             );
         } else {
             log(logItem.color, logItem.group, logItem.content);
@@ -121,7 +122,7 @@ async function processQueue() {
     for (const group in blinkers) {
         const blinker = blinkers[group];
         const now = Date.now();
-        if (now - blinker.lastBlink >= 250) {
+        if (now - blinker.lastBlink >= 200) {
             blinker.handle();
             blinker.lastBlink = now;
         }
@@ -171,6 +172,7 @@ export function setupWorkerListener(worker) {
                 color: "magenta",
                 content: message.content,
                 blinker: message.blinker,
+                blinkerColor: message.blinkerColor || "bgRed",
             });
             setTimeout(processQueue, 0);
         }
@@ -181,15 +183,6 @@ export function logDb(message) {
     //Put together the string to send to main process via IPC to avoid race condition
     var content = collectContent(message, arguments);
     process.send({ type: "log_db", content: content });
-}
-
-export function logDbWithWarningBlinker(message) {
-    var content = collectContent(message, arguments);
-    process.send({
-        type: "log_db",
-        content: content,
-        blinker: true,
-    });
 }
 
 export async function logWeb(message) {
@@ -240,4 +233,27 @@ export function logClus(group, message) {
 //For putting alerts where theres red background white text
 export function alertStyle(text) {
     return `${ansiRedBg}${ansiWhiteText}${text}${ansiReset}`;
+}
+
+//Difficult to parametrize blinkers so we make specific functions for common cases, they arent frequently used enough to generalize further
+export function logDbWithWarningBlinker(message) {
+    var content = collectContent(message, arguments);
+    process.send({
+        type: "log_db",
+        content: content,
+        blinker: true,
+        blinkerColor: "bgRed",
+    });
+}
+
+export function logWebWithGoodNewsBlinker(message) {
+    var content = collectContent(message, arguments);
+    logQueue.push({
+        group: "WEB",
+        color: "cyan",
+        content: content,
+        blinker: true,
+        blinkerColor: "bgGreen",
+    });
+    setTimeout(processQueue, 0);
 }

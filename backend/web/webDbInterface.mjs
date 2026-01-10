@@ -51,7 +51,7 @@ async function setup(databaseWorker) {
                     await logWeb(
                         "Database interface received error response:",
                         errorMessage,
-                        JSON.stringify(message)
+                        // JSON.stringify(message)
                     );
                     const error = message.requestError
                         ? new RequestError(errorMessage, errorEffect)

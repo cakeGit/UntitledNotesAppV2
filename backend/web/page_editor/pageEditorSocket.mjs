@@ -33,14 +33,14 @@ import { ActivePage } from "./activePage.mjs";
 const activePages = {};
 
 async function loadPage(pageId) {
-    console.log("Loading page", pageId, "for editing.");
+    logEditor("Loading page", pageId, "for editing.");
     const pageData = await dbInterface.sendRequest("get_page_data", {
         pageId,
     });
     if (!pageData) {
         throw new RequestError("Failed to load page " + pageId);
     }
-    logWeb(`Page ${pageId} has been loaded`);
+    logEditor(`Page ${pageId} has been loaded`);
     return new ActivePage(
         pageData.metadata,
         pageData.structure,
@@ -75,14 +75,14 @@ async function loadPageSynchronously(pageId, userId) {
     }
 
     //Create the loading thread and make it avaliable through the 'pageLoadThreads'
-    logWeb("Creating load thread for page", pageId);
+    logEditor("Creating load thread for page", pageId);
     pageLoadThreads[pageId] = new Promise(async (resolve, reject) => {
         const pageData = await loadPage(pageId) //Here we call the "unsafe" load page,
             .catch(reject); //And make sure that if loading fails we fail the promise as well
         activePages[pageId] = pageData; //Make sure we make the page avaliable to editors before closing the load thread
         resolve(pageData);
         delete pageLoadThreads[pageId]; //Now it is safe to delete
-        logWeb("Load thread for page", pageId, "has finished.");
+        logEditor("Load thread for page", pageId, "has finished.");
     });
 
     return await pageLoadThreads[pageId];

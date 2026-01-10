@@ -67,10 +67,18 @@ export class Page {
         this.content[newBlockId] = { type: blockType, ...initialData };
 
         this.insertBlockAfter(blockIdBelow, newBlockId);
+        console.log("Added new block:", newBlockId, "of type:", blockType);
+        console.log("Current content:", this.content);
+        console.log("Current structure:", this.structure);
         return newBlockId;
     }
 
     insertBlockAfter(adjacentBlockId, newBlockId) {
+        if (!adjacentBlockId) {
+            //Insert at start
+            this.structure.children.unshift({ blockId: newBlockId });
+            return;
+        }
         this.findAndPerform(adjacentBlockId, (children, index) => {
             children.splice(index + 1, 0, { blockId: newBlockId });
         });

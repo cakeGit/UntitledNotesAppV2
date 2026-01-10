@@ -3,6 +3,7 @@ import { writePageToDatabase } from "../page/serializer.mjs";
 import { getUUIDBlob, parseUUIDBlob } from "../uuidBlober.mjs";
 import { RequestError } from "../../web/foundation_safe/requestError.js";
 import { logDb } from "../../logger.mjs";
+import { adaptSqlRowsContentToJs } from "../foundation/adapter.mjs";
 
 const notebookWelcomePageInsertionsByUser = {};
 
@@ -87,4 +88,77 @@ export default function notebookDatabaseRoutes(addEndpoint) {
         }
         return {};
     });
+
+    addEndpoint("notebook/get_notebook_page_structure", async (db, message, response) => {
+        //Check the player has access to the notebook
+        await db.get(
+            db.getQueryOrThrow("notebook.check_notebook_access"),
+            [getUUIDBlob(message.notebookId), getUUIDBlob(message.userId)]
+        );
+
+        const pages = await db.all(
+            db.getQueryOrThrow("notebook.get_all_pages_in_notebook"),
+            [getUUIDBlob(message.notebookId)]
+        );
+
+        adaptSqlRowsContentToJs(pages);
+
+        //Construct file tree
+        let fileTree = {
+            children: []
+        };
+        let parents = {};
+        let treeNodes = {};
+
+        for (const page of pages) {
+            const node = {
+                pageId: page.pageId,
+                name: page.name,
+                order: page.order,
+                children: []
+            };
+            treeNodes[page.pageId] = node;
+            if (page.fileTreeParent) {
+                const parentId = page.fileTreeParent;
+                if (!parents[parentId]) {
+                    parents[parentId] = [];
+                }
+                parents[parentId].push(node);
+            }
+        }
+
+        for (const pageId in treeNodes) {
+            const node = treeNodes[pageId];
+            if (parents[pageId]) {
+                node.children = parents[pageId];
+            }
+            if (node.fileTreeParent == null) {
+                fileTree.children.push(node);
+            }
+        }
+
+        //Sort children by order
+        function sortChildrenRecursive(node) {
+            if (!node.children) return;
+            node.children.sort((a, b) => a.order - b.order);
+            for (const child of node.children) {
+                sortChildrenRecursive(child);
+            }
+        }
+        sortChildrenRecursive(fileTree);
+
+        //Clean up order properties
+        function cleanOrderProperties(node) {
+            delete node.order;
+            for (const child of node.children) {
+                cleanOrderProperties(child);
+            }
+        }
+        cleanOrderProperties(fileTree);
+
+        return {
+            pages: fileTree
+        };
+    });
+
 }

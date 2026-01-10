@@ -38,7 +38,7 @@ export function handleRequest(activePage, ws, msg) {
     } else if (msg.type === "block_addition") {
         const { adjacentBlockId, newBlockId, content } = msg;
         ALL_FIELDS_PRESENT.test({
-            adjacentBlockId,
+            // adjacentBlockId, //Can be null for adding at start
             newBlockId,
             content,
         }).throwErrorIfInvalid();

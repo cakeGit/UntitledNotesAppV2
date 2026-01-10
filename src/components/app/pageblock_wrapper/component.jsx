@@ -39,7 +39,6 @@ export function PageBlockWrapperComponent({
             </div>
             &nbsp;
             <div
-                ref={draggerRef}
                 onMouseDown={createDeleteBlockHandler(
                     blockId,
                     pageRef,
@@ -56,7 +55,6 @@ export function PageBlockWrapperComponent({
             </div>
             &nbsp;
             <div
-                ref={draggerRef}
                 onMouseDown={createAddBlockHandler(
                     blockId,
                     pageRef,
