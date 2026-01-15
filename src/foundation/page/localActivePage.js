@@ -19,7 +19,7 @@ export class LocalActivePage {
                 ws.close();
             }
             try {
-                handleLocalRequest(this.pageRef.current, ws, msg);
+                handleLocalRequest(this.pageRef.current, ws, msg, this);
                 if (msg.hash) {
                     const localHash = this.pageRef.current.getLocalHash();
                     if (localHash !== msg.hash) {

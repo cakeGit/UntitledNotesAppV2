@@ -23,7 +23,13 @@ process.stdout.write = (chunk, encoding, callback) => {
 };
 //End of evil hack
 
-function log(color, group, message, endLine = true, timestamp = new Date().toISOString()) {
+function log(
+    color,
+    group,
+    message,
+    endLine = true,
+    timestamp = new Date().toISOString()
+) {
     term[color](`[${group}] `)
         .gray(`${timestamp}: `)
         .white(`${message}${endLine ? "\n" : ""}`);
@@ -42,7 +48,12 @@ function getCurrentScreenY() {
 }
 
 const blinkers = {};
-async function logWithWarningBlinker(color, group, message, blinkerColor = "bgRed") {
+async function logWithBlinker(
+    color,
+    group,
+    message,
+    blinkerColor = "bgRed"
+) {
     if (blinkers[group]) {
         delete blinkers[group];
     }
@@ -71,45 +82,73 @@ async function logWithWarningBlinker(color, group, message, blinkerColor = "bgRe
                 return;
             }
 
-            term.saveCursor();
-
-            term.moveTo(1, gotoY);
-
             let blink = blinkers[group].blink;
-            blinkers[group].remainingBlinks -= 1;
-
-            if (blinkers[group].remainingBlinks <= 0) {
-                blink = false;
-            }
-
-            if (blink) {
-                term[blinkerColor]();
-            }
-
-            term.column(1);
-            //Alert style inside needs to have the reset codes removed to avoid messing up the colors
-            log(color, group, blink ? message.replaceAll(ansiReset, "") : message, false, timestamp);
-            term.eraseLineAfter();
-            term.styleReset();
+            performBlink(
+                blink,
+                gotoY,
+                group,
+                blinkerColor,
+                color,
+                message,
+                timestamp
+            );
 
             blinkers[group].blink = !blink;
-
-            term.restoreCursor();
 
             if (blinkers[group].remainingBlinks <= 0) {
                 delete blinkers[group];
             }
         },
-        lastBlink: 0,
+        lastBlink: 0, //Timestamp of last blink, so we know how often this should run
     };
 }
 
+function performBlink(
+    blink,
+    gotoY,
+    group,
+    blinkerColor,
+    color,
+    message,
+    timestamp
+) {
+    term.saveCursor();
+
+    term.moveTo(1, gotoY);
+
+    blinkers[group].remainingBlinks -= 1;
+
+    if (blinkers[group].remainingBlinks <= 0) {
+        blink = false;
+    }
+
+    if (blink) {
+        term[blinkerColor]();
+    }
+
+    term.column(1);
+    //Alert style inside needs to have the reset codes removed to avoid messing up the colors
+    log(
+        color,
+        group,
+        blink ? message.replaceAll(ansiReset, "") : message,
+        false,
+        timestamp
+    );
+    term.eraseLineAfter();
+    term.styleReset();
+
+    term.restoreCursor();
+    return blink;
+}
+
 let blinkerInterval = null;
+
 async function processQueue() {
     while (logQueue.length > 0) {
         let logItem = logQueue.shift();
         if (logItem.blinker === true) {
-            await logWithWarningBlinker(
+            await logWithBlinker(
                 logItem.color,
                 logItem.group,
                 logItem.content,
@@ -119,6 +158,7 @@ async function processQueue() {
             log(logItem.color, logItem.group, logItem.content);
         }
     }
+    //Blinker specific processing
     for (const group in blinkers) {
         const blinker = blinkers[group];
         const now = Date.now();

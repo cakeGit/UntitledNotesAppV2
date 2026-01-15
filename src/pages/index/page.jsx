@@ -13,17 +13,6 @@ function BuildPage() {
 
     let [user, setUser] = useState(null);
 
-    // const [currentNotebookId, setNotebook] = useState(
-    //     localStorage.getItem("currentNotebookId") || null
-    // );
-    // const [currentNotebookName, setNotebookName] = useState(
-    //     localStorage.getItem("currentNotebookName") || null
-    // );
-
-    // const [currentPageId, setPageId] = useState(
-    //     localStorage.getItem("currentPageId") || null
-    // );
-
     if (!user) {
         fetchApi("get_current_user_info")
             .then((data) => {
@@ -43,11 +32,7 @@ function BuildPage() {
     if (!currentNotebookId) {
         fetchApi("notebook/get_default_notebook")
             .then((data) => {
-                // localStorage.setItem("currentNotebookId", data.notebook_id);
-                // localStorage.setItem("currentNotebookName", data.name);
                 window.location.href = "/?notebook_id=" + data.notebook_id;
-                // setNotebook(data.notebook_id);
-                // setNotebookName(data.name);
             })
             .catch((error) => {
                 console.error("Failed to get default notebook:", error);
@@ -57,11 +42,8 @@ function BuildPage() {
         fetchApi("notebook/check_notebook_access", {
             notebook_id: currentNotebookId,
         }).catch((error) => {
-            console.error("No access to notebook:", error);
-            // localStorage.removeItem("currentNotebookId");
-            // localStorage.removeItem("currentNotebookName");
-            // setNotebook(null);
-            // setNotebookName(null);
+            console.error(`No access to notebook '${currentNotebookId}':`, error);
+            window.location.href = currentPageId ? "/?page_id=" + currentPageId : "/";
         });
     }
 
@@ -70,7 +52,6 @@ function BuildPage() {
             notebook_id: currentNotebookId,
         })
             .then((data) => {
-                // localStorage.setItem("currentPageId", data.page_id);
                 window.location.href =
                     "/?notebook_id=" +
                     currentNotebookId +
@@ -90,16 +71,10 @@ function BuildPage() {
                 currentNotebookId={currentNotebookId}
             />
             <PageCenterContent>
-                <h1>
-                    Pagepagepage{" "}
-                    <span color="grey">(hello user: {user?.label_name})</span>
-                </h1>
-                <AppLineBreak />
-
                 {currentPageId ? (
                     <PageViewComponent
                         pageId={currentPageId}
-                    ></PageViewComponent>
+                    />
                 ) : (
                     <div>Loading page...</div>
                 )}

@@ -11,13 +11,21 @@ export function AppSideBar({
     const sidebarRef = useRef(null);
     const sidebarTagRef = useRef(null);
 
-    const startShowingAppSidebar = () => {
-        sidebarTagRef.current.classList.add("show");
-        sidebarRef.current.classList.add("show");
-    };
-    const stopShowingAppSidebar = () => {
-        sidebarTagRef.current.classList.remove("show");
-        sidebarRef.current.classList.remove("show");
+    // const startShowingAppSidebar = () => {
+    //     sidebarTagRef.current.classList.add("show");
+    //     sidebarRef.current.classList.add("show");
+    // };
+    // const stopShowingAppSidebar = () => {
+    //     sidebarTagRef.current.classList.remove("show");
+    //     sidebarRef.current.classList.remove("show");
+    // };
+
+    const setSidebarLock = (locked) => {
+        if (locked) {
+            sidebarRef.current.classList.add("locked_open");
+        } else {
+            sidebarRef.current.classList.remove("locked_open");
+        }
     };
 
     return (
@@ -41,7 +49,7 @@ export function AppSideBar({
                 </p>
                 <AppSidebarLineBreak />
                 <AppSidebarNoteBookSelect currentName={currentNotebookName} />
-                <NotebookStructureView notebookId={currentNotebookId} />
+                <NotebookStructureView notebookId={currentNotebookId} setSidebarLock={setSidebarLock} />
                 <div ref={sidebarRef} className="app_sidebar_pull_tab">
                     <svg
                         className="chevron"
@@ -64,7 +72,7 @@ export function AppSideBar({
                     </svg>
                 </div>
             </div>
-            <div
+            {/* <div
                 ref={sidebarTagRef}
                 onMouseEnter={startShowingAppSidebar}
                 className="app_sidebar_hover_tag"
@@ -72,7 +80,7 @@ export function AppSideBar({
             <div
                 className="app_sidebar_hover_out_box"
                 onMouseLeave={stopShowingAppSidebar}
-            />
+            /> */}
         </div>
     );
 }

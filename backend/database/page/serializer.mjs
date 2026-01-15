@@ -198,7 +198,7 @@ async function writePageMetadata(db, pageMeta) {
     await db.run(db.getQueryOrThrow("page.insert_page"), [
         getUUIDBlob(pageMeta.pageId),
         pageMeta.name,
-        getUUIDBlob(pageMeta.ownerUserId),
+        // getUUIDBlob(pageMeta.ownerUserId),
         getUUIDBlob(pageMeta.notebookId),
     ]);
 }

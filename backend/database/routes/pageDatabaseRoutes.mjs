@@ -10,7 +10,8 @@ export default function pageDatabaseRoutes(addEndpoint) {
     });
 
     addEndpoint("write_page_data", async (db, message, response) => {
-        return await writePageToDatabase(db, message.metadata, message.structure, message.content);
+        await writePageToDatabase(db, message.metadata, message.structure, message.content);
+        return { success: true };
     })
 
     addEndpoint("check_page_access", async (db, message, response) => {

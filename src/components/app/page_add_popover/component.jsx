@@ -85,6 +85,10 @@ export function PageAddBlockPopover({ pageRef }) {
         inputRef.current.value = "";
     };
 
+    const onBlur = (e) => {
+        pageModalRef.current.style.display = "none";
+    };
+
     useEffect(() => {
         if (!pageRef.current) return;
 
@@ -112,6 +116,7 @@ export function PageAddBlockPopover({ pageRef }) {
                 placeholder="Type the name of the block to insert, enter to confirm"
                 onChange={onType}
                 onKeyDown={onSubmit}
+                onBlur={onBlur}
                 ref={inputRef}
             />
             <div ref={resultsRef}></div>

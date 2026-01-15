@@ -93,7 +93,7 @@ export async function readPageFromDatabase(db, pageId) {
         metadata: {
             pageId: parseUUIDBlob(pageData.PageID),
             name: pageData.Name,
-            ownerUserId: parseUUIDBlob(pageData.OwnerUserID),
+            // ownerUserId: parseUUIDBlob(pageData.OwnerUserID),
             notebookId: parseUUIDBlob(pageData.NotebookID),
         },
         structure,

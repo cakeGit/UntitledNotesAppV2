@@ -9,7 +9,7 @@ export function getWelcomePage(userId, notebookId) {
     return {
         metadata: {
             name: "Getting started",
-            ownerUserId: userId,
+            // ownerUserId: userId,
             pageId: pageId,
             notebookId: notebookId,
         },

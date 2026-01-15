@@ -1,6 +1,6 @@
 import { ALL_FIELDS_PRESENT } from "../../../backend/web/foundation_safe/validations.js";
 
-export function handleLocalRequest(page, ws, msg) {
+export function handleLocalRequest(page, ws, msg, localActivePage) {
     if (msg.type === "block_change") {
         const { blockId, content } = msg;
         const existingBlock = page.content[blockId];
@@ -61,6 +61,10 @@ export function handleLocalRequest(page, ws, msg) {
             structure,
             content
         }).throwErrorIfInvalid();
+
+        if (localActivePage.pageNameRef && metadata.name) { //Local active page has bindings for the header elements (just name for now)
+            localActivePage.pageNameRef.current.textContent = metadata.name;
+        }
 
         page.metadata = metadata;
         page.structure = structure;

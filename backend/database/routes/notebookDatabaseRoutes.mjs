@@ -4,6 +4,7 @@ import { getUUIDBlob, parseUUIDBlob } from "../uuidBlober.mjs";
 import { RequestError } from "../../web/foundation_safe/requestError.js";
 import { logDb } from "../../logger.mjs";
 import { adaptSqlRowsContentToJs } from "../foundation/adapter.mjs";
+import { ALL_FIELDS_PRESENT } from "../../web/foundation_safe/validations.js";
 
 const notebookWelcomePageInsertionsByUser = {};
 
@@ -40,7 +41,7 @@ export default function notebookDatabaseRoutes(addEndpoint) {
         return {
             notebook_id: parseUUIDBlob(result.NotebookID),
             name: result.Name,
-            owner_user_id: parseUUIDBlob(result.OwnerUserID),
+            // owner_user_id: parseUUIDBlob(result.OwnerUserID),
         };
     });
 
@@ -161,4 +162,22 @@ export default function notebookDatabaseRoutes(addEndpoint) {
         };
     });
 
+    addEndpoint("notebook/update_page_structure", async (db, message, response) => {
+        const dataByPage = message.structure;
+
+        db.asTransaction(async () => {
+            for (const pageId in dataByPage) {
+                const pageData = dataByPage[pageId];
+                ALL_FIELDS_PRESENT.test({
+                    pageId: pageData.pageId,
+                    order: pageData.order,
+                }).throwRequestErrorIfInvalid();
+                await db.run(db.getQueryOrThrow("notebook.update_page_file_tree_position"), [
+                    pageData.parent ? getUUIDBlob(pageData.parent) : null,
+                    pageData.order,
+                    getUUIDBlob(pageData.pageId),
+                ]);
+            }
+        });
+    });
 }

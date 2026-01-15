@@ -1,1 +1,1 @@
-SELECT * FROM Pages WHERE PageID = ? AND OwnerUserID = ? LIMIT 1;
+SELECT * FROM Pages, Notebooks WHERE Pages.PageID = ? AND Pages.NotebookID = Notebooks.NotebookID AND Notebooks.OwnerUserID = ? LIMIT 1;

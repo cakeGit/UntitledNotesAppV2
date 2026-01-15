@@ -38,6 +38,10 @@
     left: 0;
 }
 
+.app_sidebar.locked_open {
+    left: 0;
+}
+
 .app_sidebar {
     left: -240px;
     transition: left 0.3s ease-in-out;

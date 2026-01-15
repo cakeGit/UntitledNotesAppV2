@@ -36,6 +36,26 @@ function filterForPropertiesInQuery(query, inputParams) {
 //This also includes extended features for things like running multiple statements in one call, which is typically not allowed.
 function wrapDbForPromises(db) {
     return {
+        beginTransaction: () => {
+            return db.run("BEGIN TRANSACTION;");
+        },
+        commitTransaction: () => {
+            return db.run("COMMIT;");
+        },
+        rollbackTransaction: () => {
+            return db.run("ROLLBACK;");
+        },
+        asTransaction: async (operation) => {
+            await db.run("BEGIN TRANSACTION;");
+            try {
+                const result = await operation();
+                await db.run("COMMIT;");
+                return result;
+            } catch (error) {
+                await db.run("ROLLBACK;");
+                throw error;
+            }
+        },
         getQueryOrThrow: (queryName) => {
             const query = queries[queryName]; //Load query from the queries module.
             if (!query) {
