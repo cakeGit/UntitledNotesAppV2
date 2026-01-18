@@ -62,14 +62,22 @@ export function handleLocalRequest(page, ws, msg, localActivePage) {
             content
         }).throwErrorIfInvalid();
 
-        if (localActivePage.pageNameRef && metadata.name) { //Local active page has bindings for the header elements (just name for now)
-            localActivePage.pageNameRef.current.textContent = metadata.name;
-        }
+        localActivePage.updateMetadata(metadata);
 
         page.metadata = metadata;
         page.structure = structure;
         page.content = content;
         page.triggerStructureRerender();
+    } else if (msg.type === "metadata_change"){
+        const { metadata } = msg;
+        ALL_FIELDS_PRESENT.test({ metadata }).throwErrorIfInvalid();
+
+        localActivePage.updateMetadata(metadata);
+        
+        page.metadata = {
+            ...page.metadata,
+            ...metadata,
+        };
     } else {
         console.warn("Unknown local editor message type:", msg.type);
     }

@@ -4,6 +4,7 @@ export class LocalActivePage {
     constructor(pageRef, ws) {
         this.pageRef = pageRef;
         this.ws = ws;
+        this.updateMetadata = ()=>{console.warn("Called update meta before initialized")};
 
         ws.onmessage = (event) => {
             const msg = JSON.parse(event.data);
@@ -35,6 +36,14 @@ export class LocalActivePage {
                 }
             }
         };
+    }
+
+    sendMetadata(newMetadata) {
+        const message = {
+            type: "metadata_change",
+            metadata: newMetadata,
+        };
+        this.ws.send(JSON.stringify(message));
     }
 
     requestFullResync() {

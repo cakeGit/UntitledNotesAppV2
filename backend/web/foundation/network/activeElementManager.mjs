@@ -43,4 +43,11 @@ export default class ActiveElementManager {
         });
         return await this.currentLoadingThreads[activeElementKey];
     }
+
+    forAllActiveElements(callback) {
+        for (const key in this.activeElements) {
+            callback(this.activeElements[key], key);
+        }
+    }
+    
 }

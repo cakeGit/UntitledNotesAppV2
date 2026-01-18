@@ -1,0 +1,15 @@
+.page_name_input {
+    font-size: inherit;
+    font-family: inherit;
+    font-weight: inherit;
+    border: 2px solid var(--color-border);
+    background-color: transparent;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.page_name_span {
+    display: inline-block;
+    cursor: pointer;
+    box-sizing: border-box;
+}

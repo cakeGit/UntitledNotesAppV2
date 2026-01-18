@@ -104,7 +104,7 @@ export class ActivePage {
         }
     }
 
-    forwardToOtherClients(senderWs, msg) {
+    sendToOtherClients(senderWs, msg) {
         this.connectedClients.forEach((clientWs) => {
             if (clientWs !== senderWs && clientWs.readyState === clientWs.OPEN) {
                 clientWs.send(JSON.stringify(msg));
@@ -112,8 +112,8 @@ export class ActivePage {
         });
     }
 
-    forwardToOtherClientsWithHash(senderWs, msg) {
-        this.forwardToOtherClients(senderWs, this.withHash(msg));
+    sendToOtherClientsWithHash(senderWs, msg) {
+        this.sendToOtherClients(senderWs, this.withHash(msg));
     }
 
     sendWithHash(ws, msg) {

@@ -4,6 +4,7 @@ import { RequestError } from "../foundation_safe/requestError.js";
 import { dbInterface } from "../webDbInterface.mjs";
 import { destructureTree } from "../foundation/tree/treeStructureHelper.js";
 import { moveElement } from "../foundation/tree/treeHelper.mjs";
+import { logEditor } from "../../logger.mjs";
 
 export class ActiveNotebookStructure extends ActiveSocketElement {
     constructor(notebookId, structure) {
@@ -22,7 +23,7 @@ export class ActiveNotebookStructure extends ActiveSocketElement {
                 "pageId",
                 pageId,
                 newParentId,
-                newIndex
+                newIndex,
             );
             this.broadcastCurrentStructure();
             this.writeCurrentStructureToDatabase();
@@ -69,7 +70,30 @@ export class ActiveNotebookStructure extends ActiveSocketElement {
             JSON.stringify({
                 type: "notebook_structure",
                 structure: this.structure,
-            })
+            }),
+        );
+    }
+
+    updatePageNameInStructure(pageId, newName) {
+        function walkAndUpdateName(node, pageId, newName) {
+            if (node.pageId === pageId) {
+                node.name = newName;
+                return true;
+            }
+            if (node.children) {
+                for (const child of node.children) {
+                    if (walkAndUpdateName(child, pageId, newName)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        if (walkAndUpdateName(this.structure, pageId, newName)) {
+            this.broadcastCurrentStructure();
+        }
+        logEditor(
+            `Updated page name in structure for pageId ${pageId} to "${newName}"`,
         );
     }
 }

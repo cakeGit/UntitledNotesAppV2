@@ -7,7 +7,7 @@ import { ALL_FIELDS_PRESENT } from "../foundation_safe/validations.js";
 import { dbInterface } from "../webDbInterface.mjs";
 import { ActiveNotebookStructure } from "./activeNotebookStructure.mjs";
 
-const ACTIVE_NOTEBOOK_STRUCTURE_MANAGER = new ActiveElementManager(
+export const ACTIVE_NOTEBOOK_STRUCTURE_MANAGER = new ActiveElementManager(
     async (notebookId, userId) => {
         //For loading the active notebook structure
         const pages = await dbInterface.sendRequest(

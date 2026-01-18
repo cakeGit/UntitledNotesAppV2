@@ -13,6 +13,7 @@ export function PageViewComponent({ pageId }) {
     const pageRef = useRef(null);
     const linkedNetHandler = useRef(null);
     const pageNameRef = useRef(null);
+    const pageNameChangeRef = useRef(null);
 
     const [_structureRenderTick, setStructureRenderTick] = useState(0);
     //Listen to page structure changes
@@ -47,7 +48,12 @@ export function PageViewComponent({ pageId }) {
         );
 
         const pageNetHandler = new LocalActivePage(pageRef, ws);
-        pageNetHandler.pageNameRef = pageNameRef;
+        pageNetHandler.updateMetadata = (metadata) => {
+            if (pageNameRef.current) {
+                pageNameRef.current.textContent = metadata.name;
+                pageNameChangeRef.current.value = metadata.name;
+            }
+        };
         if (pageRef.current) {
             pageRef.current.linkedNetHandler = pageNetHandler;
         }
@@ -65,13 +71,39 @@ export function PageViewComponent({ pageId }) {
         };
     }, [pageId]);
 
+    const startPageNameChange = () => {
+        if (pageNameRef.current && pageNameChangeRef.current) {
+            pageNameChangeRef.current.style.display = "inline";
+            pageNameRef.current.style.display = "none";
+            pageNameChangeRef.current.focus();
+            pageNameChangeRef.current.value = pageNameRef.current.textContent;
+        }
+    };
+
+    const trySubmitNameChange = () => {
+        if (pageRef.current && pageRef.current.metadata) {
+            const newName = pageNameChangeRef.current.value.trim();
+            if (newName.length > 0 && newName !== pageRef.current.metadata.name) {
+                const newMetadata = {
+                    ...pageRef.current.metadata,
+                    name: newName,
+                };
+                linkedNetHandler.current.sendMetadata(newMetadata);
+            }
+            pageNameChangeRef.current.style.display = "none";
+            pageNameRef.current.style.display = "inline-block";
+            pageNameRef.current.textContent = newName;
+        }
+    };
+
     return (
         <>
             <h1>
-                <span ref={pageNameRef}></span>
+                <span ref={pageNameRef} className="page_name_span" onClick={startPageNameChange}></span>
+                <input ref={pageNameChangeRef} type="text" className="page_name_input" style={{display:"none"}} onBlur={trySubmitNameChange} onSubmit={trySubmitNameChange}/>
             </h1>
             <AppLineBreak />
-            <div ref={primaryContainerRef} className="pageView">
+            <div ref={primaryContainerRef} className="page_view">
                 {pageRef.current ? (
                     pageRef.current.structure.children.length > 0 ? (
                         buildNodeChildrenSimple(
