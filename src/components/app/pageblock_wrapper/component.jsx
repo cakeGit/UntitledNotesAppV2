@@ -4,6 +4,7 @@ import { createDragHandler } from "./drag.jsx";
 import "./style.css";
 import { createDeleteBlockHandler } from "./delete.jsx";
 import { createAddBlockHandler } from "./add.jsx";
+import { BLOCK_TYPE_REGISTRY } from "../../../foundation/page/typeRegistry.jsx";
 
 //Page block wrapper is a component that wraps each block in the page editor, provides drag and drop functionality
 export function PageBlockWrapperComponent({
@@ -17,6 +18,9 @@ export function PageBlockWrapperComponent({
 
     const [data, setData] = useState(pageRef.current.content[blockId]);
     pageRef.current.content[blockId].setData = setData;
+
+    const hidesAddButton =
+        BLOCK_TYPE_REGISTRY[data.type]?.hidesAddButton || false;
 
     return (
         <div
@@ -42,7 +46,7 @@ export function PageBlockWrapperComponent({
                 onMouseDown={createDeleteBlockHandler(
                     blockId,
                     pageRef,
-                    wrapperRef
+                    wrapperRef,
                 )}
                 className="page_block_binner"
                 style={{
@@ -54,21 +58,23 @@ export function PageBlockWrapperComponent({
                 &nbsp;x&nbsp;
             </div>
             &nbsp;
-            <div
-                onMouseDown={createAddBlockHandler(
-                    blockId,
-                    pageRef,
-                    wrapperRef
-                )}
-                className="page_block_adder"
-                style={{
-                    cursor: "pointer",
-                    userSelect: "none",
-                    display: "inline-block",
-                }}
-            >
-                &nbsp;+&nbsp;
-            </div>
+            {!hidesAddButton ? (
+                <div
+                    onMouseDown={createAddBlockHandler(
+                        blockId,
+                        pageRef,
+                        wrapperRef,
+                    )}
+                    className="page_block_adder"
+                    style={{
+                        cursor: "pointer",
+                        userSelect: "none",
+                        display: "inline-block",
+                    }}
+                >
+                    &nbsp;+&nbsp;
+                </div>
+            ) : null}
         </div>
     );
 }

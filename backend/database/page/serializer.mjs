@@ -21,11 +21,12 @@ function jsToSqlName(str) {
 }
 
 function replaceIdsInStructureRecursive(idConversionMap, children) {
-    for (const child of children) {
+    for (const index in children) {
+        const child = children[index];
         const oldBlockId = child.blockId;
         const newBlockId = idConversionMap[oldBlockId];
         if (!newBlockId) {
-            delete children[child];
+            delete children[index];
             logDb("Removed child with missing block ID:", oldBlockId);
             continue;
         }
@@ -68,9 +69,9 @@ function walkStructureForParentsAndOrder(
     }
 
     let orderIndex = 0;
-    for (const child in structureNode.children || []) {
-        blockOrderMap[child] = orderIndex++;
-        walkStructureForParentsAndOrder(structureNode.children[child]);
+    for (const child of structureNode.children || []) {
+        blockOrderMap[child.blockId] = orderIndex++;
+        walkStructureForParentsAndOrder(child, blockParentIdMap, blockOrderMap);
     }
 }
 

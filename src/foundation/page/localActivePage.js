@@ -78,11 +78,12 @@ export class LocalActivePage {
         this.ws.send(JSON.stringify(message));
     }
 
-    sendNewBlock(adjacentBlockId, newBlockId, blockData) {
+    sendNewBlock(adjacentBlockId, newBlockId, blockData, direction = "after") {
         const message = {
             type: "block_addition",
             adjacentBlockId: adjacentBlockId,
             newBlockId: newBlockId,
+            direction: direction,
             content: this.getCleanNetworkBlockData(blockData),
         };
         this.ws.send(JSON.stringify(message));

@@ -72,15 +72,13 @@ export function PageAddBlockPopover({ pageRef }) {
         e.preventDefault();
         if (!selectedAddBlockRef.current) return;
 
-        let newBlockId = pageRef.current.addNewBlock(
+        let newBlockId = pageRef.current.createNewBlock(
             BLOCK_REGISTRY[selectedAddBlockRef.current].type, //Convert the registry id, i.e "textHeader", to the actual block type, i.e. "text"
             adjacentBlockIdRef.current,
             selectedAddBlockRef.current in BLOCK_REGISTRY
                 ? BLOCK_REGISTRY[selectedAddBlockRef.current].defaultData
                 : {}
         );
-        pageRef.current.triggerStructureRerender();
-        pageRef.current.sendNewBlock(adjacentBlockIdRef.current, newBlockId);
         pageModalRef.current.style.display = "none";
         inputRef.current.value = "";
     };

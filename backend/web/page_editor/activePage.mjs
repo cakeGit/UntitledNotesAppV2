@@ -78,7 +78,7 @@ export class ActivePage {
         walkAndDelete(this.structure, blockId);
     }
 
-    insertBlockAfter(adjacentBlockId, newBlockId) {
+    insertBlock(adjacentBlockId, newBlockId, direction = "after") {
         if (!adjacentBlockId) {
             //Insert at start
             this.structure.children.unshift({ blockId: newBlockId });
@@ -86,7 +86,14 @@ export class ActivePage {
         }
 
         this.findAndPerform(adjacentBlockId, (children, index) => {
-            children.splice(index + 1, 0, { blockId: newBlockId });
+            if (direction === "after") {
+                children.splice(index + 1, 0, { blockId: newBlockId });
+            } else if (direction === "inside") {
+                if (!children[index].children) {
+                    children[index].children = [];
+                }
+                children[index].children.push({ blockId: newBlockId });
+            }
         });
     }
 

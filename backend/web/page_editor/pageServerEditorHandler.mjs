@@ -37,14 +37,14 @@ export function handleRequest(activePage, ws, msg) {
         activePage.isDirty = true;
         activePage.sendToOtherClientsWithHash(ws, msg);
     } else if (msg.type === "block_addition") {
-        const { adjacentBlockId, newBlockId, content } = msg;
+        const { adjacentBlockId, newBlockId, content, direction } = msg;
         ALL_FIELDS_PRESENT.test({
             // adjacentBlockId, //Can be null for adding at start
             newBlockId,
             content,
         }).throwErrorIfInvalid();
         activePage.content[newBlockId] = content;
-        activePage.insertBlockAfter(adjacentBlockId, newBlockId);
+        activePage.insertBlock(adjacentBlockId, newBlockId, direction);
         activePage.isDirty = true;
         activePage.sendToOtherClientsWithHash(ws, msg);
     } else if (msg.type === "needs_sync") {

@@ -4,7 +4,12 @@ REPLACE INTO Blocks (
 
 -- Insert into specific block type tables:
 
--- Sqlite doesent seem to directly have IF statements, but this will insert into TextBlocks if the block type is 'text', and does nothing otherwise
+-- Sqlite doesent seem to directly have IF statements, if this script starts getting slow i will add them
+-- but this will insert into TextBlocks if the block type is 'text', and does nothing otherwise
 REPLACE INTO TextBlocks (BlockID, TextContent, Subtype)
 SELECT $BlockID, $TextContent, $Subtype
 WHERE $Type = 'text';
+
+REPLACE INTO FlashcardTextBlocks (BlockID, FrontText, BackText)
+SELECT $BlockID, $FrontText, $BackText
+WHERE $Type = 'flashcard';

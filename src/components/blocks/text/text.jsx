@@ -1,18 +1,13 @@
 import { useEffect, useRef } from "react";
-import { PageBlockSubcontainerComponent } from "../app/pageblock_subcontainer/component.jsx";
 import "./text.css";
+import { useTargetableSubcomponentContainer } from "../foundation/useTargetableSubcomponentContainer.jsx";
 
 export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
-    const subcontainerRef = useRef(null);
-
-    useEffect(() => {
-        pageRef.current.addTargetableSubcomponentContainer({
-            canTarget: () => true,
-            ref: subcontainerRef,
-            blockId,
-        });
-    }, [blockId]);
-
+    const { subcontainerElement } = useTargetableSubcomponentContainer(
+        pageRef,
+        blockId,
+        children
+    );
     const textInputRef = useRef(null);
 
     // const handleTextClick = () => {
@@ -23,7 +18,8 @@ export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
 
     const handleTextChanged = (e) => {
         if (textInputRef.current) {
-            pageRef.current.content[blockId].textContent = textInputRef.current.innerText;
+            pageRef.current.content[blockId].textContent =
+                textInputRef.current.innerText;
             pageRef.current.sendChange(blockId);
             if (data.textContent.trim() === "") {
                 textInputRef.current.classList.add("showplaceholder");
@@ -33,10 +29,10 @@ export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
         }
     };
 
-    const handleTextLeave = (e) => {
-        if (textInputRef.current) {
-        }
-    };
+    // const handleTextLeave = (e) => {
+    //     if (textInputRef.current) {
+    //     }
+    // };
 
     useEffect(() => {
         if (textInputRef.current) {
@@ -51,16 +47,16 @@ export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
 
     return (
         <div ref={ref}>
-            <div className={"text_box_" + (data.subtype || "unknown")} contentEditable /*onClick={handleTextClick}*/ onBlur={handleTextLeave} onInput={handleTextChanged} ref={textInputRef} placeholder="Write text here... Type '/' for commands">
-            </div>
-            <div style={{ marginLeft: "20px" }}> {/* Indented children */}
-                <PageBlockSubcontainerComponent
-                    forwardedRef={subcontainerRef}
-                    parentId={blockId}
-                >
-                    {children}
-                </PageBlockSubcontainerComponent>
-            </div>
+            <div
+                className={"text_box_" + (data.subtype || "unknown")}
+                contentEditable
+                /*onClick={handleTextClick}*/ /*onBlur={handleTextLeave}*/ onInput={
+                    handleTextChanged
+                }
+                ref={textInputRef}
+                placeholder="Write text here... Type '/' for commands"
+            ></div>
+            {subcontainerElement}
         </div>
     );
 }

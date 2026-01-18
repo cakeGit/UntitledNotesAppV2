@@ -1,4 +1,5 @@
 import xxhash from "xxhash-wasm";
+import { BLOCK_TYPE_REGISTRY } from "./typeRegistry";
 
 function generateRandomUUID() {
     return crypto.randomUUID();
@@ -51,36 +52,51 @@ export class Page {
         );
     }
 
-    sendNewBlock(adjacentBlockId, newBlockId) {
+    sendNewBlock(adjacentBlockId, newBlockId, direction = "after") {
         this.checkForNetAndRun(() =>
             this.linkedNetHandler.sendNewBlock(
                 adjacentBlockId,
                 newBlockId,
-                this.content[newBlockId]
+                this.content[newBlockId],
+                direction
             )
         );
     }
 
-    addNewBlock(blockType, blockIdBelow, initialData = {}) {
+    createNewBlockInside(blockType, parentBlockId, initialData = {}) {
         const newBlockId = generateRandomUUID();
+        this.content[newBlockId] = { type: blockType, ...initialData };
+        this.insertBlock(parentBlockId, newBlockId, "inside");
+        this.sendNewBlock(parentBlockId, newBlockId, "inside");
+        this.triggerStructureRerender();
+        return newBlockId;
+    }   
 
+    createNewBlock(blockType, blockIdBelow, initialData = {}) {
+        const newBlockId = generateRandomUUID();
         this.content[newBlockId] = { type: blockType, ...initialData };
 
-        this.insertBlockAfter(blockIdBelow, newBlockId);
-        console.log("Added new block:", newBlockId, "of type:", blockType);
-        console.log("Current content:", this.content);
-        console.log("Current structure:", this.structure);
+        this.insertBlock(blockIdBelow, newBlockId);
+        this.sendNewBlock(blockIdBelow, newBlockId);
+        this.triggerStructureRerender();
         return newBlockId;
     }
 
-    insertBlockAfter(adjacentBlockId, newBlockId) {
+    insertBlock(adjacentBlockId, newBlockId, direction = "after") {
         if (!adjacentBlockId) {
             //Insert at start
             this.structure.children.unshift({ blockId: newBlockId });
             return;
         }
         this.findAndPerform(adjacentBlockId, (children, index) => {
-            children.splice(index + 1, 0, { blockId: newBlockId });
+            if (direction === "after") {
+                children.splice(index + 1, 0, { blockId: newBlockId });
+            } else if (direction === "inside") {
+                if (!children[index].children) {
+                    children[index].children = [];
+                }
+                children[index].children.push({ blockId: newBlockId });
+            }
         });
     }
 
@@ -181,15 +197,23 @@ export class Page {
      * The primary container is always included, where the containing blockId is undefined.
      * @returns List in the form {element: HTMLElement, blockId: string (undefined for primary container)}
      */
-    getTargetableContainers() {
+    getTargetableContainers(blockId) {
         this.revalidateSubcontainers();
 
+        //Get current block container type
+        const currentBlockContainerType = blockId ? BLOCK_TYPE_REGISTRY[this.content[blockId]?.type]?.containerType : undefined;
+
         const containers = [
-            { element: this.primaryContainerRef.current, blockId: undefined },
             ...this.subcontainers
                 .filter((c) => c.canTarget())
+                .filter((c) => currentBlockContainerType === undefined || c.containerType === currentBlockContainerType)
                 .map((c) => ({ element: c.ref.current, blockId: c.blockId })),
         ];
+
+        //Add the root ONLY if it matches the container type
+        if (currentBlockContainerType === undefined) {
+            containers.push({ element: this.primaryContainerRef.current, blockId: undefined });
+        }
 
         return containers;
     }

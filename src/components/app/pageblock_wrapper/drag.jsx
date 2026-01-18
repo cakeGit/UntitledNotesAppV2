@@ -88,7 +88,7 @@ export function createDragHandler(blockId, pageRef, wrapperRef, highlightRef) {
         const startY = e.clientY;
         const getTargetableElementAndShift = (originY) => {
             //TODO: accept x if the page later supports horizontal layouts
-            const targetables = pageRef.current.getTargetableContainers();
+            const targetables = pageRef.current.getTargetableContainers(blockId);
             //For each container, get each child and add above and below as targets, (ignoring overlap)
             const targetableElementShifts =
                 getTargetableElementAndShifts(pageRef, wrapperRef, targetables);

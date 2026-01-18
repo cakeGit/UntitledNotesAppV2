@@ -1,17 +1,21 @@
-import { createRef, useState } from "react";
+import { createRef } from "react";
 import { PageBlockWrapperComponent } from "../components/app/pageblock_wrapper/component.jsx";
-import { PageTextBlock } from "../components/blocks/text.jsx";
+import { BLOCK_TYPE_REGISTRY } from "./page/typeRegistry.jsx";
 
 export function buildBlockForData(blockId, data, children, pageRef, blockRef) {
+    const Component = BLOCK_TYPE_REGISTRY[data.type]?.component;
+    if (Component) {
+        return (
+            <Component
+                ref={blockRef}
+                blockId={blockId}
+                pageRef={pageRef}
+                data={data}
+            > {children} </Component>
+        );
+    }
     return (
-        <PageTextBlock
-            ref={blockRef}
-            blockId={blockId}
-            pageRef={pageRef}
-            data={data}
-        >
-            {children}
-        </PageTextBlock>
+        <p>Unknown block! "{JSON.stringify(data)}"!</p>
     );
 }
 

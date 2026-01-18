@@ -60,5 +60,11 @@ CREATE TABLE IF NOT EXISTS TextBlocks (
     Subtype TEXT --Null means normal, but could be "header"
 );
 
+CREATE TABLE IF NOT EXISTS FlashcardTextBlocks (
+    BlockID BLOB PRIMARY KEY,
+    FrontText TEXT,
+    BackText TEXT
+);
+
 --Blocks are accessed by page id, and since page id is not a primary key, its slow otherwise
 CREATE INDEX IF NOT EXISTS index_blocks_by_pageid ON Blocks (PageID);
