@@ -24,8 +24,6 @@ function bindEvents(activePage, ws) {
             activePage.sendWithHash(ws, message);
 
             logEditor("Error handling ws message for editor, force syncing:", e);
-            logEditor("Page content", activePage.content);
-            logEditor("Page structure", activePage.structure);
         }
     });
     

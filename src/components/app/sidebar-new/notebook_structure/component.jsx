@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ALL_FIELDS_PRESENT } from "../../../../../backend/web/foundation_safe/validations.js";
 import { startDraggingPage } from "./pageDrag";
+import "./style.css";
 
 function NotebookHighlightTarget({ ref }) {
     return (
@@ -18,7 +19,7 @@ function NotebookHighlightTarget({ ref }) {
                     height: "3px",
                     width: "100%",
                     opacity: 0,
-                    backgroundColor: "blue",
+                    backgroundColor: "var(--color-accent)",
                     borderRadius: "2px",
                 }}
             ></div>
@@ -38,6 +39,7 @@ function NotebookStructureNode({
     sendPageMove,
     first,
     setSidebarLock,
+    currentPageId,
 }) {
     const pageRef = useRef();
     const abovePlaceTargetRef = useRef();
@@ -61,27 +63,59 @@ function NotebookStructureNode({
             ) : null}
 
             <div ref={pageRef}>
-                <a href={`/?notebook_id=${notebookId}&page_id=${item.pageId}`}>
-                    {item.name || "(untitled)"}
-                </a>
-
-                <button
-                    onClick={() =>
-                        startDraggingPage(
-                            currentDragInfoRef,
-                            structurePlaceTargets,
-                            item.pageId,
-                            pageRef,
-                            socketRef,
-                            sendPageMove,
-                            setSidebarLock
-                        )
-                    }
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                    }}
                 >
-                    #
-                </button>
+                    <a
+                        href={`/?notebook_id=${notebookId}&page_id=${item.pageId}`}
+                        className="notebook_structure_page_name"
+                        style={{
+                            fontWeight:
+                                item.pageId === currentPageId ? "700" : "500",
+                            textDecoration:
+                                item.pageId === currentPageId
+                                    ? "underline"
+                                    : "none",
+                        }}
+                    >
+                        {item.name || "(untitled)"}
+                    </a>
 
-                <div style={{ marginLeft: "20px", marginBottom: "2px", borderLeft: `2px solid rgba(0, 0, 0, ${0.5 / (3 + level)})`, paddingLeft: "5px" }}>
+                    <button
+                        style={{ display: "block" }}
+                        onClick={() =>
+                            startDraggingPage(
+                                currentDragInfoRef,
+                                structurePlaceTargets,
+                                item.pageId,
+                                pageRef,
+                                socketRef,
+                                sendPageMove,
+                                setSidebarLock
+                            )
+                        }
+                        className="page_structure_drag_button"
+                    >
+                        =
+                    </button>
+                </div>
+
+                <div
+                    style={{
+                        marginLeft: "10px",
+                        marginBottom: "1px",
+                        marginTop: "1px",
+                        borderLeft: `3px solid rgba(0.25, 0.25, 0.25, ${
+                            1 / (3 + level)
+                        })`,
+                        paddingLeft: "10px",
+                    }}
+                >
                     {item.children && item.children.length > 0 ? (
                         <NotebookStructureLevel
                             structure={item.children}
@@ -93,6 +127,7 @@ function NotebookStructureNode({
                             socketRef={socketRef}
                             sendPageMove={sendPageMove}
                             setSidebarLock={setSidebarLock}
+                            currentPageId={currentPageId}
                         />
                     ) : (
                         <NotebookHighlightTarget
@@ -117,6 +152,7 @@ function NotebookStructureLevel({
     socketRef,
     sendPageMove,
     setSidebarLock,
+    currentPageId,
 }) {
     let first = true;
     return (
@@ -137,6 +173,7 @@ function NotebookStructureLevel({
                             sendPageMove={sendPageMove}
                             first={first}
                             setSidebarLock={setSidebarLock}
+                            currentPageId={currentPageId}
                         />
                     );
                     first = false;
@@ -155,8 +192,6 @@ function handleStructureEditorMessage(message, updateStructure) {
             const structure = message.structure;
             ALL_FIELDS_PRESENT.test({ structure }).throwErrorIfInvalid();
             //Render the notebook structure in the UI
-            console.log("Received notebook structure:", structure);
-            updateStructure({ children: [] });
             updateStructure(structure);
             break;
         default:
@@ -214,7 +249,6 @@ export function NotebookStructureView({ notebookId, setSidebarLock }) {
 
         ws.onmessage = (event) => {
             const message = JSON.parse(event.data);
-            console.log("Received message:", message);
             try {
                 handleStructureEditorMessage(message, (struct) => {
                     setNotebookStructure(struct);
@@ -233,9 +267,12 @@ export function NotebookStructureView({ notebookId, setSidebarLock }) {
         };
     }, [notebookId]);
 
+    const currentPageId = new URLSearchParams(window.location.search).get(
+        "page_id"
+    );
+
     return (
         <>
-            <button onClick={() => requestNewPage.current()}>New Page</button>
             <NotebookStructureLevel
                 key={rerenderKey}
                 structure={notebookStructure?.children}
@@ -245,7 +282,17 @@ export function NotebookStructureView({ notebookId, setSidebarLock }) {
                 socketRef={socketRef}
                 sendPageMove={sendPageMove}
                 setSidebarLock={setSidebarLock}
+                currentPageId={currentPageId}
             />
+
+            <div className="page_structure_new_page_container">
+                <button
+                    onClick={() => requestNewPage.current()}
+                    className="page_structure_new_page_button"
+                >
+                    + New Page
+                </button>
+            </div>
         </>
     );
 }

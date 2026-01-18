@@ -1,1 +1,0 @@
-SELECT * FROM Notebooks WHERE NotebookID = ? AND OwnerUserID = ? LIMIT 1;

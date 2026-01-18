@@ -155,4 +155,4 @@ setInterval(async () => {
             delete pagesToClearIfNobodyIsUsing[pageId];
         }
     }
-}, 1000 * 30);
+}, 1000 * 60 * 3); //Save every 3 minutes

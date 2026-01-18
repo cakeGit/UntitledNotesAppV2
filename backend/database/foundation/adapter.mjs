@@ -10,7 +10,7 @@ function sqlToJsName(str) {
     return str.charAt(0).toLowerCase() + str.slice(1);
 }
 
-export function adaptSqlRowsContentToJs(rows) {
+export function adaptSqlRowsContentToJs(rows, uuidParseKeys = []) {
     rows.map((block) => {
         for (const key in block) {
             let value = block[key];
@@ -21,7 +21,7 @@ export function adaptSqlRowsContentToJs(rows) {
             //For example, all blocks will have a imageUrl property even if it is null
             if (value == null) continue;
 
-            if (key.endsWith("ID")) {
+            if (key.endsWith("ID") || (uuidParseKeys.length !== 0 && uuidParseKeys.includes(key))) {
                 //For any ID field, parse the UUID blob
                 value = value ? parseUUIDBlob(value) : null;
             }

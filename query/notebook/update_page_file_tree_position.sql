@@ -1,1 +1,1 @@
-UPDATE Pages SET FileTreeParent = ?, OrderIndex = ? WHERE PageID = ?;
+UPDATE Pages SET FileTreeParentID = ?, OrderIndex = ? WHERE PageID = ?;

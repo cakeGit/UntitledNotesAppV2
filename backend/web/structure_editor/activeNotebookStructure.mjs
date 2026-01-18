@@ -1,70 +1,31 @@
-export class ActiveNotebookStructure {
+import ActiveSocketElement from "../foundation/network/ActiveSocketElement.mjs";
+import { generateRandomUUID } from "../../database/uuidBlober.mjs";
+import { RequestError } from "../foundation_safe/requestError.js";
+import { dbInterface } from "../webDbInterface.mjs";
+import { destructureTree } from "../foundation/tree/treeStructureHelper.js";
+import { moveElement } from "../foundation/tree/treeHelper.mjs";
+
+export class ActiveNotebookStructure extends ActiveSocketElement {
     constructor(notebookId, structure) {
+        super("Active notebook structure");
         this.notebookId = notebookId;
         this.structure = structure;
         this.connectedClients = [];
     }
 
-    movePage(pageId, newParentId, newIndex) {
-        if (pageId === newParentId) {
-            throw new RequestError("Cannot move a page into itself: " + pageId);
-        }
-
-        // Find and remove the page from its current location
-        let pageToMove = null;
-        function removePage(pages, pageId) {
-            for (let i = 0; i < pages.length; i++) {
-                const page = pages[i];
-                if (page.pageId === pageId) {
-                    pageToMove = pages.splice(i, 1)[0];
-                    return true;
-                }
-                if (page.children) {
-                    if (removePage(page.children, pageId)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        removePage(this.structure.children, pageId);
-
-        if (!pageToMove) {
-            throw new RequestError("Page to move not found: " + pageId);
-        }
-
-        // Find the new parent and insert the page
-        function insertPage(pages, parentId, pageToInsert, index) {
-            if (parentId == null) {
-                pages.splice(index, 0, pageToInsert);
-                return true;
-            }
-            for (const page of pages) {
-                if (page.pageId === parentId) {
-                    if (!page.children) {
-                        page.children = [];
-                    }
-                    page.children.splice(index, 0, pageToInsert);
-                    return true;
-                }
-                if (page.children) {
-                    if (insertPage(page.children, parentId, pageToInsert, index)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-        insertPage(this.structure.children, newParentId, pageToMove, newIndex);
-    }
-
-    async handleClientMessage(ws, message) {
+    //Message handler called by ActiveSocketElement
+    async handleMessage(ws, message, clientId) {
         if (message.type === "move_page") {
             const { pageId, newParentId, newIndex } = message;
-            this.movePage(pageId, newParentId, newIndex);
+            moveElement(
+                this.structure,
+                "pageId",
+                pageId,
+                newParentId,
+                newIndex
+            );
             this.broadcastCurrentStructure();
-            this.serializeCurrentStructure();
+            this.writeCurrentStructureToDatabase();
         } else if (message.type === "request_new_page") {
             // For simplicity, just add a new page at the root
             const pageId = generateRandomUUID();
@@ -89,57 +50,26 @@ export class ActiveNotebookStructure {
         }
     }
 
-    async serializeCurrentStructure() {
-        const structure = destructureTree(this.structure, "pageId");
+    async writeCurrentStructureToDatabase() {
+        const pageStructure = destructureTree(this.structure, "pageId");
         await dbInterface.sendRequest("notebook/update_page_structure", {
-            structure,
+            pageStructure,
         });
     }
 
     broadcastCurrentStructure() {
-        const message = {
+        this.sendToAllClients({
             type: "notebook_structure",
             structure: this.structure,
-        };
-        const messageString = JSON.stringify(message);
-        this.connectedClients.forEach((client) => {
-            client.send(messageString);
         });
     }
 
-    connectClient(ws) {
-        this.connectedClients.push(ws);
-
+    onClientConnection(ws, clientId) {
         ws.send(
             JSON.stringify({
                 type: "notebook_structure",
                 structure: this.structure,
             })
         );
-
-        ws.on("message", async (message) => {
-            const parsedMessage = JSON.parse(message);
-            try {
-                await this.handleClientMessage(ws, parsedMessage);
-            } catch (error) {
-                logEditor(
-                    "Error handling message from structure editor client: " +
-                        error.message
-                );
-                console.error(error);
-                ws.send(
-                    JSON.stringify({
-                        type: "invalid_close_connection",
-                        message: error.message,
-                    })
-                );
-            }
-        });
-
-        ws.on("close", () => {
-            this.connectedClients = this.connectedClients.filter(
-                (client) => client !== ws
-            );
-        });
     }
 }

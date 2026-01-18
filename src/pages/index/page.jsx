@@ -1,17 +1,17 @@
-import { AppLineBreak } from "../../components/app/line_break/component.jsx";
 import { PageViewComponent } from "../../components/app/page_view/component.jsx";
 import { AppSideBar } from "../../components/app/sidebar-new/component.jsx";
 import { PageCenterContent } from "../../components/layout/pageCenterContent/component.jsx";
 import "./App.css";
 
 import { withAuthCheck } from "../../foundation/authApi.js";
-import { fetchApi, fetchApiCached } from "../../foundation/api.js";
-import { useEffect, useState } from "react";
+import { fetchApi } from "../../foundation/api.js";
+import { useState } from "react";
 
 function BuildPage() {
     withAuthCheck();
 
     let [user, setUser] = useState(null);
+    let [notebookName, setNotebookName] = useState(null);
 
     if (!user) {
         fetchApi("get_current_user_info")
@@ -39,12 +39,16 @@ function BuildPage() {
             });
         return <></>;
     } else {
-        fetchApi("notebook/check_notebook_access", {
+        fetchApi("notebook/get_accessible_notebook_name", {
             notebook_id: currentNotebookId,
-        }).catch((error) => {
-            console.error(`No access to notebook '${currentNotebookId}':`, error);
-            window.location.href = currentPageId ? "/?page_id=" + currentPageId : "/";
-        });
+        })
+            .then((data) => {
+                setNotebookName(data.name);
+            })
+            .catch((error) => {
+                console.error(`No access to notebook '${currentNotebookId}':`, error);
+                window.location.href = currentPageId ? "/?page_id=" + currentPageId : "/";
+            });
     }
 
     if (!currentPageId) {
@@ -68,6 +72,7 @@ function BuildPage() {
     return (
         <div>
             <AppSideBar
+                currentNotebookName={notebookName}
                 currentNotebookId={currentNotebookId}
             />
             <PageCenterContent>

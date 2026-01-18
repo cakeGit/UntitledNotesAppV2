@@ -5,6 +5,7 @@ import { RequestError } from "../../web/foundation_safe/requestError.js";
 import { logDb } from "../../logger.mjs";
 import { adaptSqlRowsContentToJs } from "../foundation/adapter.mjs";
 import { ALL_FIELDS_PRESENT } from "../../web/foundation_safe/validations.js";
+import { restructureTree } from "../../web/foundation/tree/treeStructureHelper.js";
 
 const notebookWelcomePageInsertionsByUser = {};
 
@@ -48,7 +49,7 @@ export default function notebookDatabaseRoutes(addEndpoint) {
     addEndpoint("get_default_page", async (db, message, response) => {
         //Check the player has access to the notebook
         await db.get(
-            db.getQueryOrThrow("notebook.check_notebook_access"),
+            db.getQueryOrThrow("notebook.get_accessible_notebook_name"),
             [getUUIDBlob(message.notebookId), getUUIDBlob(message.userId)]
         );
 
@@ -79,24 +80,22 @@ export default function notebookDatabaseRoutes(addEndpoint) {
         };
     });
 
-    addEndpoint("notebook/check_notebook_access", async (db, message, response) => {
+    addEndpoint("notebook/get_accessible_notebook_name", async (db, message, response) => {
         let result = await db.get(
-            db.getQueryOrThrow("notebook.check_notebook_access"),
+            db.getQueryOrThrow("notebook.get_accessible_notebook_name"),
             [getUUIDBlob(message.notebookId), getUUIDBlob(message.userId)]
         );
         if (!result) {
             throw new RequestError("User does not have access to the notebook, or it does not exist.");
         }
-        return {};
+        return {
+            name: result.Name
+        };
     });
 
-    addEndpoint("notebook/get_notebook_page_structure", async (db, message, response) => {
-        //Check the player has access to the notebook
-        await db.get(
-            db.getQueryOrThrow("notebook.check_notebook_access"),
-            [getUUIDBlob(message.notebookId), getUUIDBlob(message.userId)]
-        );
-
+    //This must be called after verifying user access to the notebook,
+    //Since this is expected to return a value always (by the active element system)
+    addEndpoint("notebook/get_notebook_pages", async (db, message, response) => {
         const pages = await db.all(
             db.getQueryOrThrow("notebook.get_all_pages_in_notebook"),
             [getUUIDBlob(message.notebookId)]
@@ -104,70 +103,15 @@ export default function notebookDatabaseRoutes(addEndpoint) {
 
         adaptSqlRowsContentToJs(pages);
 
-        //Construct file tree
-        let fileTree = {
-            children: []
-        };
-        let parents = {};
-        let treeNodes = {};
-
-        for (const page of pages) {
-            const node = {
-                pageId: page.pageId,
-                name: page.name,
-                order: page.order,
-                children: []
-            };
-            treeNodes[page.pageId] = node;
-            if (page.fileTreeParent) {
-                const parentId = page.fileTreeParent;
-                if (!parents[parentId]) {
-                    parents[parentId] = [];
-                }
-                parents[parentId].push(node);
-            }
-        }
-
-        for (const pageId in treeNodes) {
-            const node = treeNodes[pageId];
-            if (parents[pageId]) {
-                node.children = parents[pageId];
-            }
-            if (node.fileTreeParent == null) {
-                fileTree.children.push(node);
-            }
-        }
-
-        //Sort children by order
-        function sortChildrenRecursive(node) {
-            if (!node.children) return;
-            node.children.sort((a, b) => a.order - b.order);
-            for (const child of node.children) {
-                sortChildrenRecursive(child);
-            }
-        }
-        sortChildrenRecursive(fileTree);
-
-        //Clean up order properties
-        function cleanOrderProperties(node) {
-            delete node.order;
-            for (const child of node.children) {
-                cleanOrderProperties(child);
-            }
-        }
-        cleanOrderProperties(fileTree);
-
-        return {
-            pages: fileTree
-        };
+        return pages;
     });
 
     addEndpoint("notebook/update_page_structure", async (db, message, response) => {
-        const dataByPage = message.structure;
+        const pageStructure = message.pageStructure;
 
         db.asTransaction(async () => {
-            for (const pageId in dataByPage) {
-                const pageData = dataByPage[pageId];
+            for (const pageId in pageStructure) {
+                const pageData = pageStructure[pageId];
                 ALL_FIELDS_PRESENT.test({
                     pageId: pageData.pageId,
                     order: pageData.order,

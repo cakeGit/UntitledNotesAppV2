@@ -18,11 +18,11 @@ export default function notebookWebRoutes(apiRouter) {
         return await dbInterface.sendRequest("get_default_page", { notebookId, userId });
     });
 
-    apiRouter.for("/notebook/check_notebook_access", async (req) => {
+    apiRouter.for("/notebook/get_accessible_notebook_name", async (req) => {
         let userId = await getOrThrowAuthorizedUserUUIDOfRequest(req);
         let notebookId = req.body?.notebook_id;
         ALL_FIELDS_PRESENT.test({ notebookId }).throwRequestErrorIfInvalid();
-        return await dbInterface.sendRequest("notebook/check_notebook_access", { notebookId, userId });
+        return await dbInterface.sendRequest("notebook/get_accessible_notebook_name", { notebookId, userId });
     });
 
 }

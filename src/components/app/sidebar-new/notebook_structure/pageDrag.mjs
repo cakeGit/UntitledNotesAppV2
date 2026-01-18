@@ -3,14 +3,14 @@ function reciprocalSmooth(lockValue, currentValue) {
     return lockValue + delta;
 }
 
-function distanceToRectCenter(point, rect) {
+function weightedDistanceToRectTarget(point, rect) {
     const rectCenter = {
-        x: rect.left + rect.width / 2,
+        x: rect.left + 10, //Bias to left side, so its easier to hit different indentations
         y: rect.top + rect.height / 2,
     };
     const dx = point.x - rectCenter.x;
     const dy = point.y - rectCenter.y;
-    return Math.sqrt(dx * dx + dy * dy);
+    return Math.sqrt((dx * dx) / 10 + dy * dy);
 }
 
 export function startDraggingPage(
@@ -23,7 +23,7 @@ export function startDraggingPage(
     setSidebarLock
 ) {
     if (currentDragInfoRef.current) {
-        console.error("Already dragging a page, cannot start another drag");
+        console.error("Already dragging a page but startDraggingPage was called");
         return;
     }
     setSidebarLock(true);
@@ -35,7 +35,6 @@ export function startDraggingPage(
         pageId: pageId,
         pageElementRef: pageElementRef,
     };
-    console.log("Started dragging page:", pageId);
 
     let activeHighlightTarget = null;
 
@@ -60,7 +59,7 @@ export function startDraggingPage(
 
                 if (yDiff > 50) continue;
 
-                const distance = distanceToRectCenter(cursorPos, rect);
+                const distance = weightedDistanceToRectTarget(cursorPos, rect);
                 if (distance < closestDistance) {
                     closestDistance = distance;
                     closestTarget = target;
@@ -108,7 +107,6 @@ export function startDraggingPage(
 
     function onMouseUp(event) {
         //Stop dragging the page
-        console.log("Stopped dragging page:", pageId);
         currentDragInfoRef.current = null;
         window.removeEventListener("mousemove", onMouseMove);
         window.removeEventListener("mouseup", onMouseUp);
@@ -117,7 +115,6 @@ export function startDraggingPage(
         const cursorPos = { x: event.clientX, y: event.clientY };
         const closestTarget = findNearestTarget(cursorPos);
         if (closestTarget) {
-            console.log("Dropping page at target:", closestTarget);
             const newParentId = closestTarget.inside
                 ? closestTarget.pageId
                 : closestTarget.parentId;

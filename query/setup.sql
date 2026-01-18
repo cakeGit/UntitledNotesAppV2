@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS Pages (
     PageID BLOB PRIMARY KEY,
     Name TEXT NOT NULL,
     NotebookID BLOB NOT NULL,
-    FileTreeParent BLOB, --NULL means root of notebook
+    FileTreeParentID BLOB, --NULL means root of notebook
     OrderIndex INTEGER, --Order within the parent
     LastEditedTime TEXT,
     LastEditedUserID BLOB
