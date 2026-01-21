@@ -24,6 +24,7 @@ code {
 :root {
   --color-border: #ADADAD;
   --color-soft-border: #E3E3E3;
+  --color-softest-border: #EFEFEF;
   --color-pure-background: #FFFFFF;
   --color-secondary-background: #F9F9F9;
   --color-heavy-border: #404040;
@@ -31,6 +32,12 @@ code {
   --color-text-heavy: #2B2B2B;
   --color-accent: #4A90E2;
   --color-on-accent: #FFFFFF;
+  --color-success: #28A745;
+  --color-success-light: #D4EDDA;
+  --color-text-on-success: #155724;
+  --color-error: #DC3545;
+  --color-error-light: #F8D7DA;
+  --color-text-on-error: #721C24;
 }
 
 /* when an ancestor has .showplaceholder */
@@ -47,4 +54,20 @@ code {
 /* hide the pseudo-content when focused (normal empty check breaks with grammar checkers) */
 .showplaceholder[contenteditable][placeholder]:focus::before {
   content: "";
+}
+
+button {
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+  background-color: var(--color-secondary-background);
+  color: var(--color-text);
+  font-family: "Reem Kufi", sans-serif;
+  font-weight: bold;
+  padding: 5px 5px;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+button:hover {
+  border-color: var(--color-accent);
 }

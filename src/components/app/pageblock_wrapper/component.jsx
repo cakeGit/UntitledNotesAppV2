@@ -28,8 +28,10 @@ export function PageBlockWrapperComponent({
             className="page_block_wrapper"
             data-blockid={blockId}
         >
-            {buildBlockForData(blockId, data, children, pageRef, blockRef)}
-            <div
+            <div className="page_block_container">
+                {buildBlockForData(blockId, data, children, pageRef, blockRef)}
+            </div>
+            <button
                 ref={draggerRef}
                 onMouseDown={createDragHandler(blockId, pageRef, wrapperRef)}
                 className="page_block_dragger"
@@ -39,10 +41,10 @@ export function PageBlockWrapperComponent({
                     display: "inline-block",
                 }}
             >
-                &nbsp;:::&nbsp;
-            </div>
+                ···
+            </button>
             &nbsp;
-            <div
+            <button
                 onMouseDown={createDeleteBlockHandler(
                     blockId,
                     pageRef,
@@ -55,11 +57,11 @@ export function PageBlockWrapperComponent({
                     display: "inline-block",
                 }}
             >
-                &nbsp;x&nbsp;
-            </div>
+                x
+            </button>
             &nbsp;
             {!hidesAddButton ? (
-                <div
+                <button
                     onMouseDown={createAddBlockHandler(
                         blockId,
                         pageRef,
@@ -72,8 +74,8 @@ export function PageBlockWrapperComponent({
                         display: "inline-block",
                     }}
                 >
-                    &nbsp;+&nbsp;
-                </div>
+                    +
+                </button>
             ) : null}
         </div>
     );

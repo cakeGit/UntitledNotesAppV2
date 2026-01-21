@@ -1,4 +1,4 @@
-import { logClus, logDb, logWeb } from "../logger.mjs";
+import { logClus, logWeb } from "../logger.mjs";
 import { RequestError } from "./foundation_safe/requestError.js";
 
 let dbInterface = null;
@@ -55,7 +55,7 @@ async function setup(databaseWorker) {
                     );
                     const error = message.requestError
                         ? new RequestError(errorMessage, errorEffect)
-                        : new RequestError(
+                        : new Error(
                               "Internal error" + errorMessage
                                   ? ": " + errorMessage
                                   : ""

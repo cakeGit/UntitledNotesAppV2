@@ -132,7 +132,7 @@ export function addPageEditorRouterEndpoint(app) {
 //60 second interval saver and deleter
 
 //Has to be unused for 2 intervals before it can be deleted, to avoid immediatley deleteing and recreating a page
-const pagesToClearIfNobodyIsUsing = {};
+const pagesToClearIfNobodyIsUsing = {};//TODO: replace with a set
 
 setInterval(async () => {
     for (const pageId in activePages) {
@@ -155,4 +155,4 @@ setInterval(async () => {
             delete pagesToClearIfNobodyIsUsing[pageId];
         }
     }
-}, 1000 * 60 * 3); //Save every 3 minutes
+}, 1000 * 30); //Save every 30 seconds

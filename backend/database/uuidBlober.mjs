@@ -1,6 +1,11 @@
 import crypto from "crypto";
 
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export function getUUIDBlob(uuid) {
+    if (uuid == undefined || !uuidPattern.test(uuid)) {
+        throw new Error("Invalid UUID format: " + uuid);
+    }
     let hexString = uuid.replaceAll("-", "");
     return Buffer.from(hexString, "hex");
 }

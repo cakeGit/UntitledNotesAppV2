@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS Pages (
     NotebookID BLOB NOT NULL,
     FileTreeParentID BLOB, --NULL means root of notebook
     OrderIndex INTEGER, --Order within the parent
-    LastEditedTime TEXT,
+    LastEditedTime INTEGER,
     LastEditedUserID BLOB
 );
 
@@ -46,11 +46,11 @@ CREATE TABLE IF NOT EXISTS Blocks (
 -- Flashcard learning history
 CREATE TABLE IF NOT EXISTS FlashcardLearningHistory (
     OwnerUserID BLOB NOT NULL,
-    Flashcard TEXT NOT NULL,
+    FlashcardLinkID BLOB NOT NULL,
     LearningHistory BLOB,
-    LastLearned TEXT,
+    LastLearnedTime INTEGER,
 
-    PRIMARY KEY (OwnerUserID, Flashcard) --Composite primary key
+    PRIMARY KEY (OwnerUserID, FlashcardLinkID) --Composite primary key
 );
 
 -- Text block (more blocks to come)
@@ -63,7 +63,8 @@ CREATE TABLE IF NOT EXISTS TextBlocks (
 CREATE TABLE IF NOT EXISTS FlashcardTextBlocks (
     BlockID BLOB PRIMARY KEY,
     FrontText TEXT,
-    BackText TEXT
+    BackText TEXT,
+    FlashcardLinkID BLOB --Link to the flashcard in the learning history table
 );
 
 --Blocks are accessed by page id, and since page id is not a primary key, its slow otherwise

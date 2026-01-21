@@ -290,7 +290,7 @@ export function NotebookStructureView({ notebookId, setSidebarLock }) {
                     onClick={() => requestNewPage.current()}
                     className="page_structure_new_page_button"
                 >
-                    + New Page
+                    +
                 </button>
             </div>
         </>

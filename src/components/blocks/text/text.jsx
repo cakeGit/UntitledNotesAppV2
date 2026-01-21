@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import "./text.css";
 import { useTargetableSubcomponentContainer } from "../foundation/useTargetableSubcomponentContainer.jsx";
+import { AppLineBreak } from "../../app/line_break/component.jsx";
 
 export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
     const { subcontainerElement } = useTargetableSubcomponentContainer(
@@ -56,6 +57,7 @@ export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
                 ref={textInputRef}
                 placeholder="Write text here... Type '/' for commands"
             ></div>
+            {data.subtype === "header" ? <AppLineBreak className="text_header_underline" /> : null}
             {subcontainerElement}
         </div>
     );

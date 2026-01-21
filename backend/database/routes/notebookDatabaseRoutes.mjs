@@ -5,7 +5,6 @@ import { RequestError } from "../../web/foundation_safe/requestError.js";
 import { logDb } from "../../logger.mjs";
 import { adaptSqlRowsContentToJs } from "../foundation/adapter.mjs";
 import { ALL_FIELDS_PRESENT } from "../../web/foundation_safe/validations.js";
-import { restructureTree } from "../../web/foundation/tree/treeStructureHelper.js";
 
 const notebookWelcomePageInsertionsByUser = {};
 
@@ -16,19 +15,25 @@ async function createWelcomePageThreadSafe(db, notebookId, userId) {
     }
 
     const insertionPromise = new Promise(async (resolve, reject) => {
-        const { metadata, structure, content } = getWelcomePage(
-            userId,
-            notebookId
-        );
-        logDb("Inserting welcome page into database");
-        await writePageToDatabase(db, metadata, structure, content);
-        let newWelcomePageResult = await db.get(db.getQueryOrThrow("notebook.get_default_page"), [
-            getUUIDBlob(notebookId),
-        ]);
-        logDb("Inserted welcome page", newWelcomePageResult);
+        try {
+            const { metadata, structure, content } = getWelcomePage(
+                userId,
+                notebookId,
+            );
+            logDb("Inserting welcome page into database");
+            await writePageToDatabase(db, metadata, structure, content);
+            let newWelcomePageResult = await db.get(
+                db.getQueryOrThrow("notebook.get_default_page"),
+                [getUUIDBlob(notebookId)],
+            );
+            logDb("Inserted welcome page", newWelcomePageResult);
 
-        delete notebookWelcomePageInsertionsByUser[key];
-        resolve(newWelcomePageResult);
+            delete notebookWelcomePageInsertionsByUser[key];
+            resolve(newWelcomePageResult);
+        } catch (error) {
+            delete notebookWelcomePageInsertionsByUser[key];
+            reject(error);
+        }
     });
     notebookWelcomePageInsertionsByUser[key] = insertionPromise;
     return await insertionPromise;
@@ -37,7 +42,7 @@ export default function notebookDatabaseRoutes(addEndpoint) {
     addEndpoint("get_default_user_notebook", async (db, message, response) => {
         let result = await db.get(
             db.getQueryOrThrow("notebook.get_default_notebook"),
-            [getUUIDBlob(message.userId)]
+            [getUUIDBlob(message.userId)],
         );
         return {
             notebook_id: parseUUIDBlob(result.NotebookID),
@@ -50,12 +55,12 @@ export default function notebookDatabaseRoutes(addEndpoint) {
         //Check the player has access to the notebook
         await db.get(
             db.getQueryOrThrow("notebook.get_accessible_notebook_name"),
-            [getUUIDBlob(message.notebookId), getUUIDBlob(message.userId)]
+            [getUUIDBlob(message.notebookId), getUUIDBlob(message.userId)],
         );
 
         let result = await db.get(
             db.getQueryOrThrow("notebook.get_default_page"),
-            [getUUIDBlob(message.notebookId)]
+            [getUUIDBlob(message.notebookId)],
         );
 
         //If result is undefined, we need to insert the welcome page
@@ -63,11 +68,11 @@ export default function notebookDatabaseRoutes(addEndpoint) {
             result = await createWelcomePageThreadSafe(
                 db,
                 message.notebookId,
-                message.userId
+                message.userId,
             );
             if (!result) {
                 throw new Error(
-                    "Failed to create default welcome page after a default page could not be located"
+                    "Failed to create default welcome page after a default page could not be located",
                 );
             }
         }
@@ -80,48 +85,66 @@ export default function notebookDatabaseRoutes(addEndpoint) {
         };
     });
 
-    addEndpoint("notebook/get_accessible_notebook_name", async (db, message, response) => {
-        let result = await db.get(
-            db.getQueryOrThrow("notebook.get_accessible_notebook_name"),
-            [getUUIDBlob(message.notebookId), getUUIDBlob(message.userId)]
-        );
-        if (!result) {
-            throw new RequestError("User does not have access to the notebook, or it does not exist.");
-        }
-        return {
-            name: result.Name
-        };
-    });
+    addEndpoint(
+        "notebook/get_accessible_notebook_name",
+        async (db, message, response) => {
+            let result = await db.get(
+                db.getQueryOrThrow("notebook.get_accessible_notebook_name"),
+                [getUUIDBlob(message.notebookId), getUUIDBlob(message.userId)],
+            );
+            if (!result) {
+                throw new RequestError(
+                    "User does not have access to the notebook, or it does not exist.",
+                );
+            }
+            return {
+                name: result.Name,
+            };
+        },
+    );
 
     //This must be called after verifying user access to the notebook,
     //Since this is expected to return a value always (by the active element system)
-    addEndpoint("notebook/get_notebook_pages", async (db, message, response) => {
-        const pages = await db.all(
-            db.getQueryOrThrow("notebook.get_all_pages_in_notebook"),
-            [getUUIDBlob(message.notebookId)]
-        );
+    addEndpoint(
+        "notebook/get_notebook_pages",
+        async (db, message, response) => {
+            const pages = await db.all(
+                db.getQueryOrThrow("notebook.get_all_pages_in_notebook"),
+                [getUUIDBlob(message.notebookId)],
+            );
 
-        adaptSqlRowsContentToJs(pages);
+            adaptSqlRowsContentToJs(pages);
 
-        return pages;
-    });
+            return pages;
+        },
+    );
 
-    addEndpoint("notebook/update_page_structure", async (db, message, response) => {
-        const pageStructure = message.pageStructure;
+    addEndpoint(
+        "notebook/update_page_structure",
+        async (db, message, response) => {
+            const pageStructure = message.pageStructure;
 
-        db.asTransaction(async () => {
-            for (const pageId in pageStructure) {
-                const pageData = pageStructure[pageId];
-                ALL_FIELDS_PRESENT.test({
-                    pageId: pageData.pageId,
-                    order: pageData.order,
-                }).throwRequestErrorIfInvalid();
-                await db.run(db.getQueryOrThrow("notebook.update_page_file_tree_position"), [
-                    pageData.parent ? getUUIDBlob(pageData.parent) : null,
-                    pageData.order,
-                    getUUIDBlob(pageData.pageId),
-                ]);
-            }
-        });
-    });
+            db.asTransaction(async () => {
+                for (const pageId in pageStructure) {
+                    const pageData = pageStructure[pageId];
+                    ALL_FIELDS_PRESENT.test({
+                        pageId: pageData.pageId,
+                        order: pageData.order,
+                    }).throwRequestErrorIfInvalid();
+                    await db.run(
+                        db.getQueryOrThrow(
+                            "notebook.update_page_file_tree_position",
+                        ),
+                        [
+                            pageData.parent
+                                ? getUUIDBlob(pageData.parent)
+                                : null,
+                            pageData.order,
+                            getUUIDBlob(pageData.pageId),
+                        ],
+                    );
+                }
+            });
+        },
+    );
 }

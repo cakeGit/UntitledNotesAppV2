@@ -14,36 +14,45 @@ export const ACTIVE_NOTEBOOK_STRUCTURE_MANAGER = new ActiveElementManager(
             "notebook/get_notebook_pages",
             {
                 notebookId,
-            }
+            },
         );
 
         //Turn sql rows into tree
         const rootStructureNode = restructureTree(
             pages,
             "pageId",
-            "fileTreeParentId"
+            "fileTreeParentId",
         );
 
         //Create the active notebook element
         const notebookStructure = new ActiveNotebookStructure(
             notebookId,
-            rootStructureNode
+            rootStructureNode,
         );
 
         logEditor(
             "Successfully opened new notebook structure editor",
-            notebookId
+            notebookId,
         );
         return notebookStructure;
     },
     async (notebookId, userId) => {
         //Check the user has access to this notebook
-        await dbInterface.sendRequest("notebook/get_accessible_notebook_name", {
-            notebookId,
-            userId,
-        });
+        try {
+            await dbInterface.sendRequest(
+                "notebook/get_accessible_notebook_name",
+                {
+                    notebookId,
+                    userId,
+                },
+            );
+        } catch (error) {
+            throw new RequestError(
+                "You do not have access to this notebook and cannot edit its structure.",
+            );
+        }
         return true;
-    }
+    },
 );
 
 export function addNotebookStructureEditorRouterEndpoint(app) {
@@ -61,7 +70,7 @@ export function addNotebookStructureEditorRouterEndpoint(app) {
 
             ACTIVE_NOTEBOOK_STRUCTURE_MANAGER.getOrLoadActiveElementFor(
                 notebookId,
-                userId
+                userId,
             ).then((activeNotebook) => {
                 activeNotebook.connectClient(ws, userId);
             });
@@ -70,13 +79,13 @@ export function addNotebookStructureEditorRouterEndpoint(app) {
             if (error instanceof RequestError) {
                 logEditor(
                     "User request to open structure editor socket failed: " +
-                        error.message
+                        error.message,
                 );
                 ws.send(
                     JSON.stringify({
                         type: "invalid_close_connection",
                         message: error.message,
-                    })
+                    }),
                 );
             } else {
                 throw error;

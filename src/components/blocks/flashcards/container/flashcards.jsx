@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useTargetableSubcomponentContainer } from "../../foundation/useTargetableSubcomponentContainer.jsx";
 import "./flashcards.css";
+import { FlexCenter } from "../../../app/flex_center/component.jsx";
+import { AppLineBreak } from "../../../app/line_break/component.jsx";
 
 export function PageFlashcardsBlock({ blockId, data, pageRef, children, ref }) {
     const { subcontainerElement } = useTargetableSubcomponentContainer(
         pageRef,
         blockId,
         children,
-        "flashcard"
+        "flashcard",
     );
 
     const [collapsed, setCollapsed] = useState(false); //Local state, doesent sync to page data
@@ -25,10 +27,20 @@ export function PageFlashcardsBlock({ blockId, data, pageRef, children, ref }) {
                 </button>
             </h2>
             {!collapsed ? (
-                <div className="flashcards_content">
-                {subcontainerElement}
-                <button onClick={addNewFlashcard}>Add Flashcard</button>
-                </div>
+                <>
+                    <AppLineBreak />
+                    <div className="flashcards_content">
+                        {subcontainerElement}
+                        <FlexCenter>
+                            <button
+                                onClick={addNewFlashcard}
+                                className="flashcard_add_button"
+                            >
+                                +
+                            </button>
+                        </FlexCenter>
+                    </div>
+                </>
             ) : null}
         </div>
     );

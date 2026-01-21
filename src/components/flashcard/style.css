@@ -1,0 +1,30 @@
+.flashcard_task_front_display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    font-size: 1.5em;
+    padding: 20px;
+    font-weight: bolder;
+    margin-top: 30px;
+}
+
+.flashcard_task_front_display_inner {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
+}
+
+
+.flashcard_task_front_display_inner > p {
+    margin: 10px 0;
+}
+
+.minibar {
+    display: block;
+    width: 40%;
+    height: 2px;
+    border-radius: 1px;
+    background-color: var(--color-border);
+}

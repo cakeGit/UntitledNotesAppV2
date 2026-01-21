@@ -103,6 +103,7 @@ export function PageViewComponent({ pageId }) {
                 <input ref={pageNameChangeRef} type="text" className="page_name_input" style={{display:"none"}} onBlur={trySubmitNameChange} onSubmit={trySubmitNameChange}/>
             </h1>
             <AppLineBreak />
+            <br/>
             <div ref={primaryContainerRef} className="page_view">
                 {pageRef.current ? (
                     pageRef.current.structure.children.length > 0 ? (

@@ -8,6 +8,7 @@
     box-sizing: border-box;
     padding: 0 10px;
     background-color: var(--color-pure-background);
+    z-index: 1000; /* Opacity of the block options seems to mess up the stacking context */
 }
 
 .app_sidebar_pull_tab {

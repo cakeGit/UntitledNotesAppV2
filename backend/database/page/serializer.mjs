@@ -1,8 +1,12 @@
 import { alertStyle, logDb, logDbWithWarningBlinker } from "../../logger.mjs";
-import { generateRandomUUID, getUUIDBlob } from "../uuidBlober.mjs";
+import {
+    generateRandomUUID,
+    getUUIDBlob,
+    parseUUIDBlob,
+} from "../uuidBlober.mjs";
 
 function logForOvertimeSeverity(durationMs, ...messageParts) {
-    const OVERTIME_THRESHOLD_MS = 150; //If it takes longer than 150ms, log with awesome warning blinker
+    const OVERTIME_THRESHOLD_MS = 300; //If it takes longer than 300ms, log with awesome warning blinker
     if (durationMs > OVERTIME_THRESHOLD_MS) {
         logDbWithWarningBlinker(alertStyle("Overtime alert!"), ...messageParts);
     } else {
@@ -37,7 +41,11 @@ function replaceIdsInStructureRecursive(idConversionMap, children) {
     }
 }
 
-function shuffleBlockIds(sourceStructure, sourceContent) {
+function shuffleBlockIds(
+    sourceStructure,
+    sourceContent,
+    sourceFlashcardLinkIds,
+) {
     const oldToNewIdMap = {};
 
     const newStructure = structuredClone(sourceStructure);
@@ -51,16 +59,25 @@ function shuffleBlockIds(sourceStructure, sourceContent) {
 
     replaceIdsInStructureRecursive(oldToNewIdMap, newStructure.children);
 
+    const flashcardLinkIds = {};
+    for (const oldBlockId in sourceFlashcardLinkIds) {
+        const newBlockId = oldToNewIdMap[oldBlockId];
+        if (newBlockId) {
+            flashcardLinkIds[newBlockId] = sourceFlashcardLinkIds[oldBlockId] || generateRandomUUID();
+        }
+    }
+
     return {
         structure: newStructure,
         content: newBlocks,
+        flashcardLinkIds: flashcardLinkIds,
     };
 }
 
 function walkStructureForParentsAndOrder(
     structureNode,
     blockParentIdMap,
-    blockOrderMap
+    blockOrderMap,
 ) {
     if (structureNode.blockId) {
         for (const child of structureNode.children || []) {
@@ -75,21 +92,53 @@ function walkStructureForParentsAndOrder(
     }
 }
 
+//The content's block flashcardLinkId property must be ignored
+//Only known safe flashcard link ids can be used,
+//New flashcards need ids created
+function enforceFlashcardLinkIdsRecursively(content, flashcardLinkIds) {
+    for (const blockId in content) {
+        const block = content[blockId];
+        if (block.type === "text_flashcard") {
+            const knownLinkId = flashcardLinkIds[block.blockId];
+            if (knownLinkId != null) {
+                block.flashcardLinkId = knownLinkId;
+            } else {
+                const newLinkId = generateRandomUUID();
+                block.flashcardLinkId = newLinkId;
+            }
+        }
+        if (block.children) {
+            enforceFlashcardLinkIdsRecursively(
+                block.children,
+                flashcardLinkIds,
+            );
+        }
+    }
+}
+
 export async function writePageToDatabase(
     db,
     pageMeta,
     sourceStructure,
-    sourceContent
+    sourceContent,
 ) {
     const startTime = performance.now();
     logDb("Writing page", pageMeta.pageId, "to database");
 
     //This is somewhat silly, but to avoid the client sending specific block IDs that collide in the database,
     //We can shuffle the block IDs here to new ones, that we know are valid and wont corrupt the database
-    let { structure, content } = shuffleBlockIds(
-        sourceStructure,
-        sourceContent
+    //However, we need to keep track of flashcard link IDs, so we fetch existing ones here, and adapt them to the new block IDs
+    let sourceFlashcardLinkIds = await getExistingFlashcardLinkIdMapOfPage(
+        db,
+        pageMeta.pageId,
     );
+    let { structure, content, flashcardLinkIds } = shuffleBlockIds(
+        sourceStructure,
+        sourceContent,
+        sourceFlashcardLinkIds,
+    );
+
+    enforceFlashcardLinkIdsRecursively(content, flashcardLinkIds);
 
     const blockParentIdMap = {};
     const blockOrderMap = {};
@@ -99,9 +148,7 @@ export async function writePageToDatabase(
     // Start a transaction, this prevents constant writes with every incremental change,
     // This also allows rollbacks when neccassary
     const transactionStartTime = performance.now();
-    await db.run("BEGIN TRANSACTION");
-
-    try {
+    await db.asTransaction(async () => {
         //Delete all existing blocks in this page
         await performDatabaseWrite(
             db,
@@ -109,12 +156,11 @@ export async function writePageToDatabase(
             content,
             blockParentIdMap,
             blockOrderMap,
-            startTime
         );
         const commitStartTime = performance.now();
-        await db.run("COMMIT");
         const now = performance.now();
-        logForOvertimeSeverity(now - startTime,
+        logForOvertimeSeverity(
+            now - startTime,
             "Finished writing page",
             pageMeta.pageId,
             "in",
@@ -124,13 +170,9 @@ export async function writePageToDatabase(
             now - transactionStartTime,
             "ms of which",
             now - commitStartTime,
-            "ms was commit)"
+            "ms was commit)",
         );
-    } catch (error) {
-        console.error("Error writing page to database:", error);
-        await db.run("ROLLBACK");
-        throw error;
-    }
+    });
 }
 
 function convertToSQLParams(inputData) {
@@ -148,10 +190,11 @@ function getParametersOfBlockForWrite(
     blockId,
     parentBlockId,
     pageMeta,
-    blockOrderMap
+    blockOrderMap,
 ) {
     return convertToSQLParams({
         ...blockData,
+        flashcardLinkId: blockData.flashcardLinkId ? getUUIDBlob(blockData.flashcardLinkId) : null,
         blockId: getUUIDBlob(blockId),
         parentBlockId: parentBlockId ? getUUIDBlob(parentBlockId) : null,
         pageId: getUUIDBlob(pageMeta.pageId),
@@ -160,12 +203,27 @@ function getParametersOfBlockForWrite(
     });
 }
 
+async function getExistingFlashcardLinkIdMapOfPage(db, pageId) {
+    //A static way is needed to link flashcards to blocks, (since block IDs change on every write)
+    //Here we fetch all existing flashcard link IDs in the page, so we can reuse them
+    const rows = await db.all(
+        db.getQueryOrThrow("flashcards.get_flashcard_link_ids_in_page"),
+        [getUUIDBlob(pageId)],
+    );
+    const idMap = {};
+    for (const row of rows) {
+        idMap[parseUUIDBlob(row.BlockID)] = parseUUIDBlob(row.FlashcardLinkID);
+    }
+
+    return idMap;
+}
+
 async function performDatabaseWrite(
     db,
     pageMeta,
     content,
     blockParentIdMap,
-    blockOrderMap
+    blockOrderMap,
 ) {
     await db.runMultiple(db.getQueryOrThrow("page.delete_blocks_in_page"), {
         $pageId: getUUIDBlob(pageMeta.pageId),
@@ -185,12 +243,12 @@ async function performDatabaseWrite(
             blockId,
             parentBlockId,
             pageMeta,
-            blockOrderMap
+            blockOrderMap,
         );
 
         await db.runMultiple(
             db.getQueryOrThrow("page.insert_block"),
-            inputParams
+            inputParams,
         );
     }
 }

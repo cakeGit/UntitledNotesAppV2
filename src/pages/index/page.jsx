@@ -6,6 +6,7 @@ import "./App.css";
 import { withAuthCheck } from "../../foundation/authApi.js";
 import { fetchApi } from "../../foundation/api.js";
 import { useState } from "react";
+import { FlashcardFloatingButton } from "../../components/app/flashcard_floating_button/component.jsx";
 
 function BuildPage() {
     withAuthCheck();
@@ -71,6 +72,7 @@ function BuildPage() {
 
     return (
         <div>
+            <FlashcardFloatingButton currentNotebookId={currentNotebookId} />
             <AppSideBar
                 currentNotebookName={notebookName}
                 currentNotebookId={currentNotebookId}

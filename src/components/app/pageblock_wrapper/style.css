@@ -1,8 +1,49 @@
-.page_block_dragger {
-    background-color: rgb(180, 180, 180);
+.page_block_dragger, .page_block_binner, .page_block_adder {
+    border: 2px solid var(--color-border);
+    font-weight: bold;
     border-radius: 5px;
+    height: 15px;
+    padding: 0px 4px;
+    font-size: 10px;
+    justify-content: center;
+    align-items: center;
     width: max-content;
     cursor: grab;
+    font-family: monospace;
+    opacity: 0.2;
+    display: inline-flex;
+    text-align: center;
+    transition: opacity 0.1s ease-in-out;
+}
+
+.page_block_wrapper {
+    margin: 4px 0;
+}
+
+.page_block_wrapper:hover:not(:has(.page_block_wrapper:hover)) > .page_block_dragger,
+.page_block_wrapper:hover:not(:has(.page_block_wrapper:hover)) > .page_block_binner,
+.page_block_wrapper:hover:not(:has(.page_block_wrapper:hover)) > .page_block_adder {
+    opacity: 1;
+}
+
+.page_block_container {
+    border-radius: 2px;
+}
+
+/* .page_block_container:hover {
+    border-left: 2px solid var(--color-soft-border);
+    padding-left: 1px;
+}
+
+.page_block_container:hover:has(.page_block_container:hover) {
+    border-left: 2px solid var(--color-softest-border);
+    padding-left: 1px;
+} */
+
+
+.page_block_container {
+    border-left: 2px solid transparent;
+    padding-left: 1px;
 }
 
 .page_block_highlight {

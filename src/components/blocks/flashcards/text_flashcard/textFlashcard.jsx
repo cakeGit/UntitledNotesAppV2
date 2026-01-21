@@ -32,7 +32,7 @@ function TextCardSide({ side, data, pageRef, blockId }) {
     return (
         <div className={"flashcard_side flashcard_side_" + side}>
             <div
-                className="text_box_flashcard"
+                className="flashcard_text_box"
                 contentEditable
                 onInput={handleTextChanged}
                 ref={textInputRef}

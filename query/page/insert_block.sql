@@ -10,6 +10,6 @@ REPLACE INTO TextBlocks (BlockID, TextContent, Subtype)
 SELECT $BlockID, $TextContent, $Subtype
 WHERE $Type = 'text';
 
-REPLACE INTO FlashcardTextBlocks (BlockID, FrontText, BackText)
-SELECT $BlockID, $FrontText, $BackText
-WHERE $Type = 'flashcard';
+REPLACE INTO FlashcardTextBlocks (BlockID, FrontText, BackText, FlashcardLinkID)
+SELECT $BlockID, $FrontText, $BackText, $FlashcardLinkID
+WHERE $Type = 'text_flashcard';
