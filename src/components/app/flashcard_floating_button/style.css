@@ -14,3 +14,36 @@
     cursor: pointer;
     z-index: 1001;
 }
+
+.flashcard_symbol_element {
+    position: absolute;
+    width: 20px;
+    height: 30px;
+    border-radius: 5px;
+    display: block;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1002;
+}
+
+.flashcard_symbol_1 {
+    border: 3px solid var(--color-border);
+    transform: translate(-60%, -50%) rotate(-20deg);
+    transition: transform 0.2s ease;
+}
+
+.flashcard_symbol_2 {
+    border: 3px solid var(--color-heavy-border);
+    background-color: var(--color-pure-background);
+    transform: translate(-40%, -50%) rotate(20deg);
+    transition: transform 0.2s ease;
+}
+
+.flashcard_floating_button:hover .flashcard_symbol_1 {
+    transform: translate(-90%, -70%) rotate(-10deg);
+}
+
+.flashcard_floating_button:hover .flashcard_symbol_2 {
+    transform: translate(-10%, -30%) rotate(10deg);
+}

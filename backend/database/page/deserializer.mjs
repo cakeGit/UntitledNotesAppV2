@@ -70,7 +70,14 @@ export async function readPageFromDatabase(db, pageId) {
         };
         nodes[blockId] = thisNode;
         parents[blockId] = block.parentBlockId;
-        content[blockId] = block;
+        content[blockId] = {
+            ...block,
+            //If the documentData is present, convert from Buffer to base64 string
+            documentData:
+                block.type === "drawing_canvas" && block.documentData
+                    ? Buffer.from(block.documentData).toString("base64")
+                    : undefined,
+        };
 
         //Remove now redundant data
         delete block.pageId;

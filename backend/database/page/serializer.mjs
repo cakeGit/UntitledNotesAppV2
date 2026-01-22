@@ -63,7 +63,8 @@ function shuffleBlockIds(
     for (const oldBlockId in sourceFlashcardLinkIds) {
         const newBlockId = oldToNewIdMap[oldBlockId];
         if (newBlockId) {
-            flashcardLinkIds[newBlockId] = sourceFlashcardLinkIds[oldBlockId] || generateRandomUUID();
+            flashcardLinkIds[newBlockId] =
+                sourceFlashcardLinkIds[oldBlockId] || generateRandomUUID();
         }
     }
 
@@ -194,7 +195,17 @@ function getParametersOfBlockForWrite(
 ) {
     return convertToSQLParams({
         ...blockData,
-        flashcardLinkId: blockData.flashcardLinkId ? getUUIDBlob(blockData.flashcardLinkId) : null,
+        //Conversion for documentData field in DrawingCanvasBlocks so it can be stored as a BLOB
+        documentData:
+            blockData.type === "drawing_canvas"
+                ? blockData.documentData
+                    ? Buffer.from(blockData.documentData, 'base64')
+                    : null
+                : undefined,
+        //Flashcard link info
+        flashcardLinkId: blockData.flashcardLinkId
+            ? getUUIDBlob(blockData.flashcardLinkId)
+            : null,
         blockId: getUUIDBlob(blockId),
         parentBlockId: parentBlockId ? getUUIDBlob(parentBlockId) : null,
         pageId: getUUIDBlob(pageMeta.pageId),

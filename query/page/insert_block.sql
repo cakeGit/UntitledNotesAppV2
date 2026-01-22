@@ -13,3 +13,7 @@ WHERE $Type = 'text';
 REPLACE INTO FlashcardTextBlocks (BlockID, FrontText, BackText, FlashcardLinkID)
 SELECT $BlockID, $FrontText, $BackText, $FlashcardLinkID
 WHERE $Type = 'text_flashcard';
+
+REPLACE INTO DrawingCanvasBlocks (BlockID, DocumentData)
+SELECT $BlockID, $DocumentData
+WHERE $Type = 'drawing_canvas';

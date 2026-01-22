@@ -67,5 +67,10 @@ CREATE TABLE IF NOT EXISTS FlashcardTextBlocks (
     FlashcardLinkID BLOB --Link to the flashcard in the learning history table
 );
 
+CREATE TABLE IF NOT EXISTS DrawingCanvasBlocks (
+    BlockID BLOB PRIMARY KEY,
+    DocumentData BLOB
+);
+
 --Blocks are accessed by page id, and since page id is not a primary key, its slow otherwise
 CREATE INDEX IF NOT EXISTS index_blocks_by_pageid ON Blocks (PageID);

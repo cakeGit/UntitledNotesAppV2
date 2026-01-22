@@ -1,20 +1,27 @@
 DELETE FROM TextBlocks
-WHERE BlockId IN (
-    SELECT Blocks.BlockId
+WHERE BlockID IN (
+    SELECT Blocks.BlockID
     FROM Blocks
     WHERE Blocks.PageID = $pageId
 );
 
 DELETE FROM FlashcardTextBlocks
-WHERE BlockId IN (
-    SELECT Blocks.BlockId
+WHERE BlockID IN (
+    SELECT Blocks.BlockID
+    FROM Blocks
+    WHERE Blocks.PageID = $pageId
+);
+
+DELETE FROM DrawingCanvasBlocks
+WHERE BlockID IN (
+    SELECT Blocks.BlockID
     FROM Blocks
     WHERE Blocks.PageID = $pageId
 );
 
 DELETE FROM Blocks
-WHERE BlockId IN (
-    SELECT Blocks.BlockId
+WHERE BlockID IN (
+    SELECT Blocks.BlockID
     FROM Blocks
     WHERE Blocks.PageID = $pageId
 )
