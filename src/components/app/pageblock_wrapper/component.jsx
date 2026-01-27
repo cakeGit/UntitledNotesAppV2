@@ -1,10 +1,10 @@
 import { useRef, useState } from "react";
-import { buildBlockForData } from "../../../foundation/blockBuilder.jsx";
+import { renderBlock } from "../../../foundation/blockRenderer.jsx";
 import { createDragHandler } from "./drag.jsx";
 import "./style.css";
 import { createDeleteBlockHandler } from "./delete.jsx";
 import { createAddBlockHandler } from "./add.jsx";
-import { BLOCK_TYPE_REGISTRY } from "../../../foundation/page/typeRegistry.jsx";
+import { BLOCK_TYPE_REGISTRY } from "../../../foundation/page/typeRegistry.mjs";
 
 //Page block wrapper is a component that wraps each block in the page editor, provides drag and drop functionality
 export function PageBlockWrapperComponent({
@@ -29,7 +29,7 @@ export function PageBlockWrapperComponent({
             data-blockid={blockId}
         >
             <div className="page_block_container">
-                {buildBlockForData(blockId, data, children, pageRef, blockRef)}
+                {renderBlock(blockId, data, children, pageRef, blockRef)}
             </div>
             <button
                 ref={draggerRef}

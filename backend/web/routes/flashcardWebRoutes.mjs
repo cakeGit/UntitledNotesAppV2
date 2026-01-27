@@ -72,4 +72,19 @@ export default function notebookWebRoutes(apiRouter) {
             };
         },
     );
+
+    apiRouter.for("/flashcards/update_flashcard_learning_data", async (req) => {
+        logWeb("called");
+        let userId = await getOrThrowAuthorizedUserUUIDOfRequest(req);
+        let flashcardLearningUpdates = req.body?.flashcardLearningUpdates;
+        logWeb("Received flashcard learning updates:", flashcardLearningUpdates);
+        ALL_FIELDS_PRESENT.test({
+            flashcardLearningUpdates,
+        }).throwRequestErrorIfInvalid();
+        logWeb("Processing flashcard learning updates:", flashcardLearningUpdates);
+        return await dbInterface.sendRequest("flashcards/update_flashcard_learning_data", {
+            userId,
+            flashcardLearningUpdates,
+        } );
+    } );
 }

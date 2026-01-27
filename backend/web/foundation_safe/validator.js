@@ -110,6 +110,10 @@ export class Validator {
     notNull() {
         return this.where(new PredicateCondition((data) => data != null, "must not be null"));
     }
+
+    instanceOf(type) {
+        return 
+    }
     
     lengthBetween(minLength, maxLength) {
         return this.where(new LengthCondition(minLength, maxLength));

@@ -1,3 +1,3 @@
-SELECT FlashcardLinkID, FlashcardTextBlocks.BlockID FROM FlashcardTextBlocks
-JOIN Blocks ON FlashcardTextBlocks.BlockID = Blocks.BlockID
+SELECT FlashcardLinkID, FlashcardBlocks.BlockID FROM FlashcardBlocks
+JOIN Blocks ON FlashcardBlocks.BlockID = Blocks.BlockID
 WHERE Blocks.PageID = ?;

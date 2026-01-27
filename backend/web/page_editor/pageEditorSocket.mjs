@@ -5,31 +5,6 @@ import { ALL_FIELDS_PRESENT } from "../foundation_safe/validations.js";
 import { dbInterface } from "../webDbInterface.mjs";
 import { ActivePage } from "./activePage.mjs";
 
-// const currentPageEditor = new ActivePage(
-//     {
-//         children: [
-//             {
-//                 blockId: "textboxid",
-//                 children: [
-//                     {
-//                         blockId: "textboxid2",
-//                     },
-//                 ],
-//             },
-//         ],
-//     },
-//     {
-//         textboxid: {
-//             type: "textbox",
-//             textContent: "hey",
-//         },
-//         textboxid2: {
-//             type: "textbox",
-//             textContent: "hooo",
-//         },
-//     }
-// );
-
 const activePages = {};
 
 async function loadPage(pageId) {
@@ -89,8 +64,10 @@ async function loadPageSynchronously(pageId, userId) {
 }
 
 export function addPageEditorRouterEndpoint(app) {
+    //Create the websocket port on the server at /page_editor
     app.ws("/page_editor", async (ws, req) => {
         try {
+            //Ensure the connection is authorised and provides a pageId to link to 
             logEditor("New WebSocket connection to /page_editor");
             const userId = await getOrThrowAuthorizedUserUUIDOfRequest(req);
             const { pageId } = req.query;
@@ -129,10 +106,9 @@ export function addPageEditorRouterEndpoint(app) {
         }
     });
 }
-//60 second interval saver and deleter
 
 //Has to be unused for 2 intervals before it can be deleted, to avoid immediatley deleteing and recreating a page
-const pagesToClearIfNobodyIsUsing = {};//TODO: replace with a set
+const pagesToClearIfNobodyIsUsing = new Set(); //Faster access than an array, we just want to check if elements are present
 
 setInterval(async () => {
     for (const pageId in activePages) {
@@ -146,13 +122,14 @@ setInterval(async () => {
         }
 
         if (page.connectedClients.length == 0) {
-            if (pagesToClearIfNobodyIsUsing[pageId] != false) {
+            if (pagesToClearIfNobodyIsUsing.has(pageId)) {
+                //No connections are open, just remove from the active pages map to close
                 delete activePages[pageId];
             } else {
-                pagesToClearIfNobodyIsUsing[pageId] = true;
+                pagesToClearIfNobodyIsUsing.add(pageId);
             }
         } else {
-            delete pagesToClearIfNobodyIsUsing[pageId];
+            pagesToClearIfNobodyIsUsing.delete(pageId);
         }
     }
-}, 1000 * 30); //Save every 30 seconds
+}, 1000 * 30); //Save every 30 seconds, which is very frequent, but for development purposes it is helpful

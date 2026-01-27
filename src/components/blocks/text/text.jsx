@@ -11,12 +11,6 @@ export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
     );
     const textInputRef = useRef(null);
 
-    // const handleTextClick = () => {
-    //     console.log("Text block clicked");
-    //     if (textInputRef.current) {
-    //     }
-    // };
-
     const handleTextChanged = (e) => {
         if (textInputRef.current) {
             pageRef.current.content[blockId].textContent =
@@ -29,11 +23,6 @@ export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
             }
         }
     };
-
-    // const handleTextLeave = (e) => {
-    //     if (textInputRef.current) {
-    //     }
-    // };
 
     useEffect(() => {
         if (textInputRef.current) {

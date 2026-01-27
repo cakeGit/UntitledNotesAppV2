@@ -66,8 +66,13 @@ button {
   padding: 5px 5px;
   cursor: pointer;
   vertical-align: middle;
+  transition: border-color 0.2s;
 }
 
 button:hover {
+  border-color: var(--color-accent);
+}
+
+button:focus {
   border-color: var(--color-accent);
 }

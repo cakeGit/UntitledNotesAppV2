@@ -5,7 +5,7 @@ WHERE BlockID IN (
     WHERE Blocks.PageID = $pageId
 );
 
-DELETE FROM FlashcardTextBlocks
+DELETE FROM FlashcardBlocks
 WHERE BlockID IN (
     SELECT Blocks.BlockID
     FROM Blocks

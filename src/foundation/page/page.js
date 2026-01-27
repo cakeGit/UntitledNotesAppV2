@@ -1,5 +1,5 @@
 import xxhash from "xxhash-wasm";
-import { BLOCK_TYPE_REGISTRY } from "./typeRegistry";
+import { BLOCK_TYPE_REGISTRY } from "./typeRegistry.mjs";
 
 function generateRandomUUID() {
     return crypto.randomUUID();
@@ -8,12 +8,6 @@ function generateRandomUUID() {
 const hash = await xxhash();
 
 export class Page {
-    removeSubcontainer(refToRemove) {
-        this.subcontainers = this.subcontainers.filter(
-            (container) => container.ref !== refToRemove
-        );
-    }
-
     constructor(structureJSON, contentJSON) {
         this.structure = structureJSON;
         this.content = contentJSON;
@@ -23,9 +17,17 @@ export class Page {
         this.linkedNetHandler = null;
     }
 
+    removeSubcontainer(refToRemove) {
+        this.subcontainers = this.subcontainers.filter(
+            (container) => container.ref !== refToRemove
+        );
+    }
+
     checkForNetAndRun(runnable) {
         if (!this.linkedNetHandler) {
-            console.log("No linkedNetHandler to send changes, dropping");
+            //Warning to alert if the handler failed to load or is still loading while the user was able to make changes.
+            //Has not occured in normal development, but remains as a safeguard.
+            console.warn("No linkedNetHandler to send changes, dropping");
             return;
         }
         runnable();

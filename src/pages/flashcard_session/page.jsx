@@ -3,110 +3,60 @@ import { PageCenterContent } from "../../components/layout/pageCenterContent/com
 import { fetchApi } from "../../foundation/api.js";
 import { useApi } from "../../foundation/useApiData.js";
 import "./style.css";
-import { FlashcardSelfAssessTask } from "./tasks/SelfAssessTask.jsx";
-import { FlashcardMultiChoiceTask } from "./tasks/MultiChoiceTask.jsx";
-import { generateMultiChoiceOptions } from "./multichoiceHelper.mjs";
+import { FlashcardSelfAssessTask } from "./tasks/selfAssessTask.jsx";
+import { FlashcardMultiChoiceTask } from "./tasks/multiChoiceTask.jsx";
+import { getNextFlashcardBundle } from "./flashcardBundler.mjs";
+import { collectFlashcardSessionData } from "./flashcardSessionDataCollector.mjs";
 
-function getFlashcardPriority(flashcard) {
-    const l1 = flashcard.learningHistory1 || 0;
-    const l2 = flashcard.learningHistory2 || 0;
-    const l3 = flashcard.learningHistory3 || 0;
-    const l4 = flashcard.learningHistory4 || 0;
-
-    const now = Date.now();
-    const lastLearnedTime = flashcard.lastLearnedTime || 0;
-    const daysSinceLastLearned =
-        (now - lastLearnedTime) / (1000 * 60 * 60 * 24);
-
-    return (
-        1 -
-        (l1 * 2 + l2 * 1.5 + l3 * 1.25 + l4) / 12 +
-        Math.pow(1.05, daysSinceLastLearned)
+function applyLearningResultToFlashcard(
+    flashcards,
+    flashcardLinkId,
+    confidence,
+) {
+    const flashcard = flashcards.find(
+        (fc) => fc.flashcardLinkId === flashcardLinkId,
     );
+    if (!flashcard) return;
+    const now = Date.now();
+    flashcard.lastLearnedTime = now;
+
+    //Shift the history up, this makes me feel weird that its not an array but oh well
+    flashcard.learningHistory4 = flashcard.learningHistory3 || 0;
+    flashcard.learningHistory3 = flashcard.learningHistory2 || 0;
+    flashcard.learningHistory2 = flashcard.learningHistory1 || 0;
+    flashcard.learningHistory1 = confidence;
 }
 
-/**
- * Get a 'Bundle' of the next 10 flashcards to learn
- */
-function getNextFlashcardBundle(flashcards, includeMultiChoiceData) {
-    if (flashcards.length === 0) {
-        throw new Error("No flashcards available to build a flashcard bundle");
-    }
+function timeTo(timestamp) {
+    const now = Date.now();
+    const diffMs = now - timestamp;
+    const diffSecs = Math.floor(diffMs / 1000);
+    const diffMins = Math.floor(diffSecs / 60);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays > 0) return `${diffDays}d ago`;
+    if (diffHours > 0) return `${diffHours}h ago`;
+    if (diffMins > 0) return `${diffMins}m ago`;
+    return `${diffSecs}s ago`;
+}
 
-    //Apply in the flashcard priority
-    flashcards.forEach((flashcard) => {
-        flashcard.priority = getFlashcardPriority(flashcard); //Note that unlearned flashcards will have a priority of infinity
-    });
-    flashcards.sort((a, b) => b.priority - a.priority);
-    
-    let nextUnlearnedCard = null;
-    let flashcardBundle = [];
-    //Skip unlearned cards from the top but keep track of the first one, and then fill in the rest of the bundle with learned cards
-    for (let i = 0; i < flashcards.length; i++) {
-        const flashcard = flashcards[i];
-        if (!flashcard.lastLearnedTime) {
-            if (!nextUnlearnedCard) {
-                nextUnlearnedCard = flashcard;
-            }
-            continue;
-        }
-        flashcardBundle.push(flashcard);
-        if (flashcardBundle.length >= 10) {
-            break;
-        }
+function getLearningCode(flashcard) {
+    function getLearningChar(value) {
+        return value ? ["H", "M", "E"][value - 1] || "-" : "-";
     }
-
-    let unlearnedCardIncluded = false;
-    //If flashcardBundle has less than 10 cards, we can go back and add unlearned cards
-    if (flashcardBundle.length < 10 && nextUnlearnedCard) {
-        for (let i = flashcardBundle.length; i < 10; i++) {
-            if (!flashcards[i] || flashcards[i].priority !== Infinity) break;
-            flashcardBundle.push(flashcards[i]);
-            unlearnedCardIncluded = true;
-        }
-        //If the length is still lower, repeat the cards
-        if (flashcardBundle.length < 10) {
-            let i = 0;
-            while (flashcardBundle.length < 10) {
-                flashcardBundle.push(
-                    flashcardBundle[i],
-                );
-                i++;
-            }
-        }
-    }
-
-    //Check the lowest priority of the learned cards in the bundle, and see if its less than 0.90,
-    //If so, check a random number (so we maintain close to the 5% target of unlearned cards in sessions
-    if (flashcardBundle[flashcardBundle.length - 1].priority < 0.9 && !unlearnedCardIncluded && Math.random() < 0.05) {
-        //Replace the last card with the next unlearned card
-        flashcardBundle[flashcardBundle.length - 1] = nextUnlearnedCard;
-    }
-
-    flashcardBundle = structuredClone(flashcardBundle); //Deep clone to avoid mutating the original data if we add multi choice data
-
-    //If multi choice mode, generate the additional data needed
-    for (const flashcard of flashcardBundle) {
-        if (includeMultiChoiceData) {
-            flashcard.multiChoiceOptions = generateMultiChoiceOptions(flashcard, flashcards);
-        }
-    }
-    console.log("Final flashcard bundle with multi choice data:", flashcardBundle);
-    return flashcardBundle;
+    return (
+        getLearningChar(flashcard.learningHistory1) +
+        getLearningChar(flashcard.learningHistory2) +
+        getLearningChar(flashcard.learningHistory3) +
+        getLearningChar(flashcard.learningHistory4)
+    );
 }
 
 function BuildPage() {
-    //Get selected pages
+    //Get selected pages from the session storage (from flashcard_select page)
     const selectedPageIds = JSON.parse(
         sessionStorage.getItem("flashcard_session_selected_page_ids"),
     );
-    const sessionOption = sessionStorage.getItem("flashcard_session_option") || "self_assess";
-    const includeMultiChoiceData = sessionOption == "multi_choice";
-
-    const [activeFlashcard, setActiveFlashcard] = useState(null);
-    const [flashcardIndex, setFlashcardIndex] = useState(0);
-    const activeFlashcardBundleRef = useRef(null);
-    const flashcardLearningUpdatesRef = useRef([]);
 
     const { data, loading, error } = useApi(async () => {
         const response = await fetchApi(
@@ -118,50 +68,116 @@ function BuildPage() {
 
         return response.flashcards;
     });
+    const initialData = structuredClone(data);
+
+    const sessionOption =
+        sessionStorage.getItem("flashcard_session_option") || "self_assess";
+    const flashcardsInSessionCount = parseInt(
+        sessionStorage.getItem("flashcard_session_flashcard_count") || "5",
+    );
+    const includeMultiChoiceData = sessionOption == "multi_choice";
+
+    const flashcardLearningUpdatesRef = useRef([]);
+
+    const activeFlashcardBundleRef = useRef(null);
+    const [flashcardLearnedCount, setFlashcardLearnedCount] = useState(0);
+    const [activeFlashcard, setActiveFlashcard] = useState(null);
+
     if (loading || error) return <></>;
-    console.log(data);
 
-    activeFlashcardBundleRef.current = activeFlashcardBundleRef.current || getNextFlashcardBundle(data, includeMultiChoiceData);
-    if (!activeFlashcard) setActiveFlashcard(activeFlashcardBundleRef.current[0]);
+    if (!activeFlashcardBundleRef.current) {
+        activeFlashcardBundleRef.current = getNextFlashcardBundle(
+            data,
+            includeMultiChoiceData,
+        );
+        setActiveFlashcard(activeFlashcardBundleRef.current[0]);
+    }
 
-    const advanceToNextFlashcard = (difficulty) => {
-        console.log("Completed flashcard with difficulty:", difficulty);
+    const advanceToNextFlashcard = (confidence) => {
         //Update the flashcard learning history locally, we bundle actually uploading the results later
         const flashcard = activeFlashcardBundleRef.current.shift();
         flashcardLearningUpdatesRef.current.push({
             flashcardLinkId: flashcard.flashcardLinkId,
-            difficulty
+            confidence,
         });
-        if (!flashcard) {
-            //We need a new bundle if we're still going (temp dev: infinite flashcards no stoppping)
-            activeFlashcardBundleRef.current = getNextFlashcardBundle(data, includeMultiChoiceData);
-        };
-        console.log(activeFlashcardBundleRef.current);
-        setFlashcardIndex(flashcardIndex + 1);
+        applyLearningResultToFlashcard(
+            data,
+            flashcard.flashcardLinkId,
+            confidence,
+        );
+
+        if (activeFlashcardBundleRef.current.length === 0) {
+            if (flashcardLearnedCount >= flashcardsInSessionCount - 1) {
+                //Finished the session, go to flashcard complete page and upload results
+                const { flashcardLearningStacks, statistics } =
+                    collectFlashcardSessionData(
+                        flashcardLearningUpdatesRef.current,
+                        data,
+                        initialData,
+                    );
+                sessionStorage.setItem(
+                    "flashcard_session_statistics",
+                    JSON.stringify(statistics),
+                );
+                fetchApi("flashcards/update_flashcard_learning_data", {
+                    flashcardLearningUpdates: flashcardLearningStacks,
+                }).then(() => {
+                    window.location.href = "/flashcard_complete";
+                });
+                return;
+            }
+
+            //We need a new bundle if we're still going
+            activeFlashcardBundleRef.current = getNextFlashcardBundle(
+                data,
+                includeMultiChoiceData,
+            );
+        }
+
         setActiveFlashcard(activeFlashcardBundleRef.current[0]);
-        console.log("Changed active flashcard to:", activeFlashcard, flashcardIndex + 1);
+        setFlashcardLearnedCount(flashcardLearnedCount + 1);
     };
+
     const TaskComponent = {
         self_assess: FlashcardSelfAssessTask,
-        multi_choice: FlashcardMultiChoiceTask
-    }[sessionOption];
+        multi_choice: FlashcardMultiChoiceTask,
+    }[sessionOption]; //Resolve the task component based on session option
+
     return (
         <PageCenterContent>
             <h1>Flashcard revision session</h1>
-            <TaskComponent flashcard={activeFlashcard} onComplete={advanceToNextFlashcard} key={flashcardIndex}/>
-            <div className="flashcard_session_progress_bar"
-            style={{
-                width: "100%",
-                height: "20px",
-                backgroundColor: "#ddd",
-                marginTop: "20px",
-            }}>
+            <TaskComponent
+                flashcard={activeFlashcard}
+                onComplete={advanceToNextFlashcard}
+                key={flashcardLearnedCount}
+            />
+            <i className="flashcard_learning_debug">
+                priority=
+                {activeFlashcard
+                    ? activeFlashcard.priority === Infinity
+                        ? "Unlearned"
+                        : activeFlashcard.priority.toFixed(2)
+                    : "N/A"}
+                &nbsp;|&nbsp;last learned=
+                {activeFlashcard
+                    ? activeFlashcard.lastLearnedTime === 0 ||
+                      activeFlashcard.lastLearnedTime === undefined
+                        ? "Never"
+                        : timeTo(activeFlashcard.lastLearnedTime)
+                    : "N/A"}
+                &nbsp;|&nbsp;history=
+                {activeFlashcard ? getLearningCode(activeFlashcard) : "N/A"}
+            </i>
+            <div
+                className="flashcard_session_progress_bar"
+                style={{
+                    width: "100%",
+                }}
+            >
                 <div
                     className="flashcard_session_progress_bar_fill"
                     style={{
-                        width: `${100 * (flashcardIndex / 30)}%`,
-                        height: "100%",
-                        backgroundColor: "#4caf50", //TEMP I SWEAR
+                        width: `${100 * (flashcardLearnedCount / flashcardsInSessionCount)}%`,
                     }}
                 ></div>
             </div>

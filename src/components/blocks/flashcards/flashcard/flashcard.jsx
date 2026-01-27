@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import "./textFlashcard.css";
+import "./flashcard.css";
 
 function TextCardSide({ side, data, pageRef, blockId }) {
     const textInputRef = useRef(null);

@@ -153,7 +153,7 @@ function BuildPage() {
             <br />
             <select ref={sessionOptionRef}>
                 <option value="self_assess">
-                    Self-assess (show answer, then rate difficulty)
+                    Self-assess (show answer, then rate confidence)
                 </option>
                 <option value="multi_choice">
                     Multiple choice (Pick out of 4)

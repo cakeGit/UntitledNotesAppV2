@@ -13,9 +13,9 @@ function FlashcardMultichoiceOption({
     const wasIncorrect = submittedIndex === index && !isCorrect;
     const handleClick = () => {
         if (isCorrect) {
-            submitAnswer(1, index); // Easy
+            submitAnswer(3, index); // Easy
         } else {
-            submitAnswer(3, index); // Hard
+            submitAnswer(1, index); // Hard
         }
     };
     return (
@@ -40,9 +40,9 @@ export function FlashcardMultiChoiceTask({ flashcard, onComplete }) {
         (option) => option.flashcardLinkId === flashcard.flashcardLinkId,
     );
 
-    const submitAnswer = (difficulty, submittedIndex) => {
+    const submitAnswer = (confidence, submittedIndex) => {
         setSubmittedIndex(submittedIndex);
-        questionResultRef.current = difficulty;
+        questionResultRef.current = confidence;
     };
     return (
         <div className="flashcard_task">
@@ -82,7 +82,7 @@ export function FlashcardMultiChoiceTask({ flashcard, onComplete }) {
                 </div>
             </div>
             {submittedIndex !== null ? (
-                <button onClick={() => onComplete(questionResultRef.current, submittedIndex)}>
+                <button onClick={() => onComplete(questionResultRef.current, submittedIndex)} autoFocus={true}>
                     Continue
                 </button>
             ) : null}

@@ -1,11 +1,54 @@
 import { useEffect, useRef, useState } from "react";
 import { Page } from "../../../foundation/page/page.js";
 import "./style.css";
-import { buildNodeChildrenSimple } from "../../../foundation/blockBuilder.jsx";
+import { renderChildBlocks } from "../../../foundation/blockRenderer.jsx";
 import { LocalActivePage } from "../../../foundation/page/localActivePage.js";
 import { EmptyPageHint } from "../page_empty_hint/component.jsx";
 import { PageAddBlockPopover } from "../page_add_popover/component.jsx";
 import { AppLineBreak } from "../line_break/component.jsx";
+import { VALID_PAGE_NAME } from "../../../../backend/web/foundation_safe/validations.js";
+
+//Methods we use for the display and handling of editing the page name
+function trySubmitNameChange(
+    pageRef,
+    pageNameChangeRef,
+    linkedNetHandler,
+    pageNameRef,
+) {
+    //If the page isnt loaded, or missing metadata from server, ignore
+    if (!pageRef.current || !pageRef.current.metadata) return;
+
+    //Remove spaces from start and end
+    const newName = pageNameChangeRef.current.value.trim();
+
+    pageNameChangeRef.current.style.display = "none";
+    pageNameRef.current.style.display = "inline-block";
+
+    const validity = VALID_PAGE_NAME.test(newName);
+    if (validity.isValid) {
+        if (newName !== pageRef.current.metadata.name) return; //Valid, but no change, ignore
+        pageNameRef.current.textContent = newName;
+        //If valid and not the same, we update the meta and send to the server
+        const newMetadata = {
+            ...pageRef.current.metadata,
+            name: newName,
+        };
+        linkedNetHandler.current.sendMetadata(newMetadata);
+    } else {
+        //Alert the user the name was invalid
+        alert("Invalid page name! " + validity.errorMessage);
+    }
+}
+
+function startPageNameChange(pageNameRef, pageNameChangeRef) {
+    //If the page isnt loaded, or missing metadata from server, ignore
+    if (!pageNameRef.current || !pageNameChangeRef.current) return;
+
+    pageNameChangeRef.current.style.display = "inline";
+    pageNameRef.current.style.display = "none";
+    pageNameChangeRef.current.focus();
+    pageNameChangeRef.current.value = pageNameRef.current.textContent;
+}
 
 export function PageViewComponent({ pageId }) {
     const socketRef = useRef(null);
@@ -16,20 +59,25 @@ export function PageViewComponent({ pageId }) {
     const pageNameChangeRef = useRef(null);
 
     const [_structureRenderTick, setStructureRenderTick] = useState(0);
-    //Listen to page structure changes
+
     useEffect(() => {
+        //If there is no page, make one
         if (!pageRef.current) {
+            //Create an empty page for now
             pageRef.current = new Page({ children: [] }, {});
-            window.pageRef = pageRef;
+
+            window.pageRef = pageRef; // (Debug, makes the pageRef avaliable on the console)
+
+            //Bind the page to the net handler if it is ready
             if (linkedNetHandler.current) {
                 pageRef.current.linkedNetHandler = linkedNetHandler.current;
             }
         }
 
-        //Register the primary container
+        //Register the "primary container" to the page
         pageRef.current.primaryContainerRef = primaryContainerRef;
 
-        //Register the structure rerender trigger
+        //Register the structure rerender trigger, adds one to the tick to force react to recreate the whole component
         pageRef.current.triggerStructureRerender = () => {
             setStructureRenderTick((tick) => tick + 1);
         };
@@ -43,10 +91,12 @@ export function PageViewComponent({ pageId }) {
     const primaryContainerRef = useRef(null);
 
     useEffect(() => {
+        //Connect to the websocket
         const ws = new WebSocket(
-            `ws://${window.location.host}/page_editor?pageId=${pageId}`
+            `ws://${window.location.host}/page_editor?pageId=${pageId}`,
         );
 
+        //Create the net handler
         const pageNetHandler = new LocalActivePage(pageRef, ws);
         pageNetHandler.updateMetadata = (metadata) => {
             if (pageNameRef.current) {
@@ -54,15 +104,13 @@ export function PageViewComponent({ pageId }) {
                 pageNameChangeRef.current.value = metadata.name;
             }
         };
+        //Make the net handler avaliable to loading pages
+        linkedNetHandler.current = pageNetHandler;
+
+        //However, if a page already exists then bind the net handler to it
         if (pageRef.current) {
             pageRef.current.linkedNetHandler = pageNetHandler;
         }
-
-        ws.onopen = () => {
-            pageNetHandler.requestFullResync();
-        };
-
-        linkedNetHandler.current = pageNetHandler;
 
         socketRef.current = ws;
 
@@ -71,46 +119,49 @@ export function PageViewComponent({ pageId }) {
         };
     }, [pageId]);
 
-    const startPageNameChange = () => {
-        if (pageNameRef.current && pageNameChangeRef.current) {
-            pageNameChangeRef.current.style.display = "inline";
-            pageNameRef.current.style.display = "none";
-            pageNameChangeRef.current.focus();
-            pageNameChangeRef.current.value = pageNameRef.current.textContent;
-        }
-    };
-
-    const trySubmitNameChange = () => {
-        if (pageRef.current && pageRef.current.metadata) {
-            const newName = pageNameChangeRef.current.value.trim();
-            if (newName.length > 0 && newName !== pageRef.current.metadata.name) {
-                const newMetadata = {
-                    ...pageRef.current.metadata,
-                    name: newName,
-                };
-                linkedNetHandler.current.sendMetadata(newMetadata);
-            }
-            pageNameChangeRef.current.style.display = "none";
-            pageNameRef.current.style.display = "inline-block";
-            pageNameRef.current.textContent = newName;
-        }
-    };
-
     return (
         <>
             <h1>
-                <span ref={pageNameRef} className="page_name_span" onClick={startPageNameChange}></span>
-                <input ref={pageNameChangeRef} type="text" className="page_name_input" style={{display:"none"}} onBlur={trySubmitNameChange} onSubmit={trySubmitNameChange}/>
+                {/*The name of the page, and the input box that takes its place when we edit it*/}
+                <span
+                    ref={pageNameRef}
+                    className="page_name_span"
+                    onClick={() =>
+                        startPageNameChange(pageNameRef, pageNameChangeRef)
+                    }
+                ></span>
+                <input
+                    ref={pageNameChangeRef}
+                    type="text"
+                    className="page_name_input"
+                    style={{ display: "none" }}
+                    onBlur={() =>
+                        trySubmitNameChange(
+                            pageRef,
+                            pageNameChangeRef,
+                            linkedNetHandler,
+                            pageNameRef,
+                        )
+                    }
+                    onSubmit={() =>
+                        trySubmitNameChange(
+                            pageRef,
+                            pageNameChangeRef,
+                            linkedNetHandler,
+                            pageNameRef,
+                        )
+                    }
+                />
             </h1>
             <AppLineBreak />
-            <br/>
+            <br />
             <div ref={primaryContainerRef} className="page_view">
                 {pageRef.current ? (
                     pageRef.current.structure.children.length > 0 ? (
-                        buildNodeChildrenSimple(
+                        renderChildBlocks(
                             pageRef.current.structure.children,
                             pageRef.current.content,
-                            pageRef
+                            pageRef,
                         )
                     ) : (
                         <EmptyPageHint pageRef={pageRef} />

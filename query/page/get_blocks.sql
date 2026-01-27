@@ -3,14 +3,16 @@ SELECT
     Blocks.*, 
     TextBlocks.TextContent, 
     TextBlocks.Subtype, 
-    FlashcardTextBlocks.FrontText, 
-    FlashcardTextBlocks.BackText,
-    FlashcardTextBlocks.FlashcardLinkID,
+    FlashcardBlocks.FrontText, 
+    FlashcardBlocks.BackText,
+    FlashcardBlocks.FrontCanvasDocumentData,
+    FlashcardBlocks.BackCanvasDocumentData,
+    FlashcardBlocks.FlashcardLinkID,
     DrawingCanvasBlocks.DocumentData
 FROM Blocks
 
 LEFT JOIN TextBlocks ON Blocks.BlockID = TextBlocks.BlockID AND Blocks.Type = 'text'
-LEFT JOIN FlashcardTextBlocks ON Blocks.BlockID = FlashcardTextBlocks.BlockID AND Blocks.Type = 'text_flashcard'
+LEFT JOIN FlashcardBlocks ON Blocks.BlockID = FlashcardBlocks.BlockID AND Blocks.Type = 'flashcard'
 LEFT JOIN DrawingCanvasBlocks ON Blocks.BlockID = DrawingCanvasBlocks.BlockID AND Blocks.Type = 'drawing_canvas'
 
 WHERE Blocks.PageID = ?;

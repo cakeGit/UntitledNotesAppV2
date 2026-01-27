@@ -76,18 +76,18 @@ export function addNotebookStructureEditorRouterEndpoint(app) {
             });
         } catch (error) {
             //If the user request was invalid, close the connection with an error message
-            if (error instanceof RequestError) {
+            if (error instanceof RequestError) {//If it was a request error, we can send a message to the user
                 logEditor(
                     "User request to open structure editor socket failed: " +
                         error.message,
                 );
-                ws.send(
+                ws.send(//Tell the user the error message and that they should give up on the connection
                     JSON.stringify({
                         type: "invalid_close_connection",
                         message: error.message,
                     }),
                 );
-            } else {
+            } else {//Otherwise something went wrong and the error needs to keep going
                 throw error;
             }
             ws.close();

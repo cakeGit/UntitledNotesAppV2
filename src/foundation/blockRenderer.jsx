@@ -1,8 +1,9 @@
 import { createRef } from "react";
 import { PageBlockWrapperComponent } from "../components/app/pageblock_wrapper/component.jsx";
-import { BLOCK_TYPE_REGISTRY } from "./page/typeRegistry.jsx";
+import { BLOCK_TYPE_REGISTRY } from "./page/typeRegistry.mjs";
+import { getCleanNetworkBlockData } from "./page/localActivePage.js";
 
-export function buildBlockForData(blockId, data, children, pageRef, blockRef) {
+export function renderBlock(blockId, data, children, pageRef, blockRef) {
     const Component = BLOCK_TYPE_REGISTRY[data.type]?.component;
     if (Component) {
         return (
@@ -15,15 +16,15 @@ export function buildBlockForData(blockId, data, children, pageRef, blockRef) {
         );
     }
     return (
-        <p>Unknown block! "{JSON.stringify(data)}"!</p>
+        <p>Unknown block! "{JSON.stringify(getCleanNetworkBlockData(data))}"!</p>
     );
 }
 
-export function buildChildrenBlockForData(blockId, children, content, pageRef) {
-    return buildNodeChildrenSimple(children, content, pageRef);
+export function renderChildrenForBlock(blockId, children, content, pageRef) {
+    return renderChildBlocks(children, content, pageRef);
 }
 
-export function buildNodeChildrenSimple(children, content, pageRef) {
+export function renderChildBlocks(children, content, pageRef) {
     if (children === undefined || children.length === 0) {
         return null;
     }
@@ -43,7 +44,7 @@ export function buildNodeChildrenSimple(children, content, pageRef) {
                         wrapperRef={blockRef}
                     >
                         {(() => {
-                            return buildChildrenBlockForData(
+                            return renderChildrenForBlock(
                                 block.blockId,
                                 block.children,
                                 content,

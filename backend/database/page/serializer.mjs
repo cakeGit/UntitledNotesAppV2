@@ -99,7 +99,7 @@ function walkStructureForParentsAndOrder(
 function enforceFlashcardLinkIdsRecursively(content, flashcardLinkIds) {
     for (const blockId in content) {
         const block = content[blockId];
-        if (block.type === "text_flashcard") {
+        if (block.type === "flashcard") {
             const knownLinkId = flashcardLinkIds[block.blockId];
             if (knownLinkId != null) {
                 block.flashcardLinkId = knownLinkId;

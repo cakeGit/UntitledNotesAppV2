@@ -1,16 +1,33 @@
 import { handleLocalRequest } from "./pageLocalEditorHandler";
 
+//Remove the react data since we cant send that, and it causes JSON to fail
+export function getCleanNetworkBlockData(blockData) {
+    let result = {};
+    for (const key in blockData) {
+        if (key != "ref" && key != "setData") {
+            result[key] = blockData[key];
+        }
+    }
+    return result;
+}
+
 export class LocalActivePage {
     constructor(pageRef, ws) {
         this.pageRef = pageRef;
         this.ws = ws;
-        this.updateMetadata = ()=>{console.warn("Called update meta before initialized")};
+        this.updateMetadata = () => {
+            console.warn("Called update meta before initialized");
+        };
 
         ws.onmessage = (event) => {
             const msg = JSON.parse(event.data);
             if (msg.type === "invalid_close_connection") {
-                console.log("Closing local editor connection due to invalid message");
-                alert(msg.message || "Connection closed due to invalid message.");
+                console.log(
+                    "Closing local editor connection due to invalid message",
+                );
+                alert(
+                    msg.message || "Connection closed due to invalid message.",
+                );
                 if (msg.link_action == "goto_default_page") {
                     console.log("Returning to default page as instructed");
                     localStorage.clear("currentPageId");
@@ -24,7 +41,9 @@ export class LocalActivePage {
                 if (msg.hash) {
                     const localHash = this.pageRef.current.getLocalHash();
                     if (localHash !== msg.hash) {
-                        console.log("Hash mismatch after handling message, requesting full resync");
+                        console.log(
+                            "Hash mismatch after handling message, requesting full resync",
+                        );
                         this.requestFullResync();
                     }
                 }
@@ -57,7 +76,7 @@ export class LocalActivePage {
         const message = {
             type: "block_change",
             blockId: blockId,
-            content: this.getCleanNetworkBlockData(blockData),
+            content: getCleanNetworkBlockData(blockData),
         };
         this.ws.send(JSON.stringify(message));
     }
@@ -84,19 +103,8 @@ export class LocalActivePage {
             adjacentBlockId: adjacentBlockId,
             newBlockId: newBlockId,
             direction: direction,
-            content: this.getCleanNetworkBlockData(blockData),
+            content: getCleanNetworkBlockData(blockData),
         };
         this.ws.send(JSON.stringify(message));
-    }
-
-    //Remove the react data since we cant send that, and it causes JSON to fail
-    getCleanNetworkBlockData(blockData) {
-        let result = {};
-        for (const key in blockData) {
-            if (key != "ref" && key != "setData") {
-                result[key] = blockData[key];
-            }
-        }
-        return result;
     }
 }

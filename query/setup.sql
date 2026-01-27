@@ -60,10 +60,12 @@ CREATE TABLE IF NOT EXISTS TextBlocks (
     Subtype TEXT --Null means normal, but could be "header"
 );
 
-CREATE TABLE IF NOT EXISTS FlashcardTextBlocks (
+CREATE TABLE IF NOT EXISTS FlashcardBlocks (
     BlockID BLOB PRIMARY KEY,
     FrontText TEXT,
     BackText TEXT,
+    FrontCanvasDocumentData BLOB,
+    BackCanvasDocumentData BLOB,
     FlashcardLinkID BLOB --Link to the flashcard in the learning history table
 );
 

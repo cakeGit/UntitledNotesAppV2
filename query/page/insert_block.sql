@@ -10,9 +10,9 @@ REPLACE INTO TextBlocks (BlockID, TextContent, Subtype)
 SELECT $BlockID, $TextContent, $Subtype
 WHERE $Type = 'text';
 
-REPLACE INTO FlashcardTextBlocks (BlockID, FrontText, BackText, FlashcardLinkID)
-SELECT $BlockID, $FrontText, $BackText, $FlashcardLinkID
-WHERE $Type = 'text_flashcard';
+REPLACE INTO FlashcardBlocks (BlockID, FrontText, BackText, FrontCanvasDocumentData, BackCanvasDocumentData, FlashcardLinkID)
+SELECT $BlockID, $FrontText, $BackText, $FrontCanvasDocumentData, $BackCanvasDocumentData, $FlashcardLinkID
+WHERE $Type = 'flashcard';
 
 REPLACE INTO DrawingCanvasBlocks (BlockID, DocumentData)
 SELECT $BlockID, $DocumentData

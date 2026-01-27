@@ -35,3 +35,32 @@
     color: var(--color-text-on-error);
     cursor: default;
 }
+
+.flashcard_learning_debug {
+    width: 100%;
+    display: block;
+    text-align: center;
+    color: var(--color-border);
+    font-size: 0.75em;
+}
+
+.page_center_content {
+    position: relative; /* So that the progress bar can be positioned absolutely within it */
+    overflow: hidden;
+}
+
+.flashcard_session_progress_bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 5px;
+    background-color: var(--color-softest-border);
+    border-top: 3px solid var(--color-soft-border);
+    overflow: hidden;
+}
+
+.flashcard_session_progress_bar_fill {
+    background-color: var(--color-accent);
+    transition: width 0.3s;
+    height: 10px;
+}

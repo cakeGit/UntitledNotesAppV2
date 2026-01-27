@@ -15,7 +15,7 @@ export function PageFlashcardsBlock({ blockId, data, pageRef, children, ref }) {
     const [collapsed, setCollapsed] = useState(false); //Local state, doesent sync to page data
 
     function addNewFlashcard() {
-        pageRef.current.createNewBlockInside("text_flashcard", blockId);
+        pageRef.current.createNewBlockInside("flashcard", blockId);
     }
 
     return (

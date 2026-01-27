@@ -1,5 +1,5 @@
 import { logEditor } from "../../logger.mjs";
-import { ALL_FIELDS_PRESENT } from "../foundation_safe/validations.js";
+import { ALL_FIELDS_PRESENT, VALID_PAGE_NAME } from "../foundation_safe/validations.js";
 import { ACTIVE_NOTEBOOK_STRUCTURE_MANAGER } from "../structure_editor/notebookStructureEditorSocket.mjs";
 
 export function handleRequest(activePage, ws, msg) {
@@ -59,10 +59,21 @@ export function handleRequest(activePage, ws, msg) {
         const { metadata } = msg;
         ALL_FIELDS_PRESENT.test({ metadata }).throwErrorIfInvalid();
         const safeProperties = ["name", "lastModifiedTimestamp"];
+        const propertyValidators = {
+            name: VALID_PAGE_NAME,
+            lastModifiedTimestamp: VALID_RECENT_TIMESTAMP
+        };
 
         const prevName = activePage.metadata.name;
 
         for (const prop of safeProperties) {
+            if (propertyValidators[prop]) {
+                let validation = propertyValidators[prop].test({
+                    [prop]: metadata[prop],
+                });
+                validation.throwRequestErrorIfInvalid();
+            }
+
             if (metadata[prop] !== undefined) {
                 activePage.metadata[prop] = metadata[prop];
             }

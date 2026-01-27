@@ -62,7 +62,6 @@ function BuildPage() {
                     currentNotebookId +
                     "&page_id=" +
                     data.page_id;
-                setPageId(data.page_id);
             })
             .catch((error) => {
                 console.error("Failed to get default page:", error);

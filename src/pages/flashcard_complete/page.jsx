@@ -9,7 +9,10 @@ function BuildPage() {
             <AppLineBreak />
             <p>You have completed your flashcard session. Well done!</p>
             <br />
-            <a href="/flashcard_session">Start a new session</a>
+            <a href="/flashcard_session">Do the session again</a>
+            <br />
+            <a href="/flashcard_select">Setup a new session</a>
+            <br />
             <a href="/">Return to your notes</a>
         </PageCenterContent>
     );

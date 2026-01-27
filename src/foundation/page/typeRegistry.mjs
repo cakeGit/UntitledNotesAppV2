@@ -1,6 +1,6 @@
 import { PageTextBlock } from "../../components/blocks/text/text";
 import { PageFlashcardsBlock } from "../../components/blocks/flashcards/container/flashcards";
-import { PageTextFlashcardBlock } from "../../components/blocks/flashcards/text_flashcard/textFlashcard";
+import { PageTextFlashcardBlock } from "../../components/blocks/flashcards/flashcard/flashcard";
 import { PageDrawingCanvasBlock } from "../../components/blocks/drawing_canvas/drawingCanvas";
 
 export const BLOCK_TYPE_REGISTRY = {
@@ -10,7 +10,7 @@ export const BLOCK_TYPE_REGISTRY = {
     flashcards: {
         component: PageFlashcardsBlock,
     },
-    text_flashcard: {
+    flashcard: {
         component: PageTextFlashcardBlock,
         containerType: "flashcard",
         hidesAddButton: true,
