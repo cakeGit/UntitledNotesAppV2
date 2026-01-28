@@ -119,6 +119,7 @@ setInterval(async () => {
                 structure: page.structure,
                 content: page.content,
             });
+            page.isDirty = false;
         }
 
         if (page.connectedClients.length == 0) {

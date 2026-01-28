@@ -13,10 +13,11 @@ export function handleRequest(activePage, ws, msg) {
         }).throwErrorIfInvalid();
 
         //Update the active page data
-        activePage.content[blockId] = {
-            ...existingBlock, //Apply existing data
-            ...content, //And then new data on top
-        };
+        // activePage.content[blockId] = {
+        //     ...existingBlock, //Apply existing data
+        //     ...content, //And then new data on top
+        // };
+        activePage.content[blockId] = content;
         activePage.isDirty = true;
         activePage.sendToOtherClientsWithHash(ws, msg);
     } else if (msg.type === "structure_change") {

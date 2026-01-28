@@ -12,7 +12,7 @@
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    z-index: 1001;
+    z-index: 251;
 }
 
 .flashcard_symbol_element {
@@ -24,7 +24,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 1002;
+    z-index: 252;
 }
 
 .flashcard_symbol_1 {

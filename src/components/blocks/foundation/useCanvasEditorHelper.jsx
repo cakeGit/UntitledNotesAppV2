@@ -2,14 +2,14 @@ import { compress, uncompress } from "../../../foundation/jsonCompression";
 import { Debouncer } from "../../../foundation/debounce";
 import { useEffect, useRef, useState } from "react";
 
-export function useCanvasEditorHelper(blockId, canvasDataKey, data, pageRef) {
+export function useCanvasEditorHelper(blockId, canvasDataKey, data, pageRef, active = true) {
     const [editor, setEditor] = useState(null);
     const lastSnapshot = useRef(null);
     const lastCompressedSnapshot = useRef(null);
     const suppressNextUpdate = useRef(false);
 
     useEffect(() => {
-        if (!editor) return;
+        if (!editor || !active) return;
         //JS asynchronous shenanagains, useEffect cant be async, however,
         // this script needs to be, so we create a new function and run it in the background
         (async () => {
@@ -29,7 +29,7 @@ export function useCanvasEditorHelper(blockId, canvasDataKey, data, pageRef) {
     }, [data[canvasDataKey], editor]);
 
     useEffect(() => {
-        if (!editor) return;
+        if (!editor || !active) return;
 
         const debouncedSave = new Debouncer(async (entry) => {
             const snapshot = editor.getSnapshot();
@@ -40,6 +40,7 @@ export function useCanvasEditorHelper(blockId, canvasDataKey, data, pageRef) {
                 return; //No changes since last save, so we drop
             }
             lastCompressedSnapshot.current = compressed;
+
             //Pack because we're storing a fairly large JSON 'dump'
             pageRef.current.content[blockId][canvasDataKey] = compressed;
             pageRef.current.sendChange(blockId);
@@ -62,6 +63,6 @@ export function useCanvasEditorHelper(blockId, canvasDataKey, data, pageRef) {
             cleanup();
             debouncedSave.cancel();
         };
-    }, [editor]);
+    }, [editor, active]);
     return {setEditor};
 }

@@ -13,11 +13,13 @@
     background-color: var(--color-secondary-background);
     font-weight: bold;
     text-align: center;
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
 }
 
 .flashcard_text_box {
     width: 100%;
-    height: 100%;
     outline: none;
     border: 2px solid transparent;
     box-sizing: border-box;
@@ -25,8 +27,119 @@
     justify-content: center;
     align-items: center;
     border-radius: 4px;
+    min-height: 50px;
+    flex: 1;
 }
 
 .flashcard_text_box:focus {
+    border: 2px solid var(--color-soft-accent);
+}
+
+.flashcard_canvas {
+    width: 100%;
+    height: 200px;
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    overflow: hidden;
+    background-color: var(--color-pure-background);
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.flashcard_canvas_modal_canvas {
+    width: 80vw;
+    height: 80vh;
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    overflow: hidden;
+    background-color: var(--color-pure-background);
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.flashcard_canvas_modal_overlay {
+    position: fixed;
+    top: 5vh;
+    left: 5vw;
+    width: 90vw;
+    height: 90vh;
+    background-color: var(--color-pure-background);
+    border: 3px solid var(--color-border);
+    border-radius: 16px;
+    overflow: hidden;
+    z-index: 500;
+}
+
+.flashcard_canvas_modal_canvas {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.flashcard_canvas_modal_close_button {
+    position: absolute;
+    top: 50%;
+    left: 5px;
+    border-radius: 12px;
+    z-index: 503;
+    width: 30px;
+    height: 30px;
+    transition: top 0.2s ease-in-out;
+    transform: translate(0, -50%);
+    border: 3px solid var(--color-border);
+}
+
+.flashcard_canvas_modal_blur {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 499;
+    backdrop-filter: blur(1px) brightness(0.95);
+}
+
+.flashcard_canvas_modal_content {
+    width: 100%;
+    height: 100%;
+}
+
+.flashcard_canvas {
+    cursor: pointer;
+}
+
+.flashcard_type_select_container {
+    width: 30px;
+    height: 20px;
+    font-size: 0.75em;
+}
+
+.flashcard_type_select {
     border: 2px solid var(--color-border);
+    border-radius: 6px;
+    background-color: var(--color-pure-background);
+}
+
+.select__control {
+    min-height: 20px !important;
+}
+.select__indicator svg {
+    width: 12px;
+    height: 12px;
+}
+
+.select__menu {
+    background-color: var(--color-secondary-background);
+    border: 2px solid var(--color-border);
+    border-radius: 6px;
+}
+.select__menu > * > * {
+    padding: 2px;
+}
+.select__menu > * > *:hover {
+    background-color: var(--color-accent);
 }

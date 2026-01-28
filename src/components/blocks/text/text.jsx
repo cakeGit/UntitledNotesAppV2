@@ -38,7 +38,7 @@ export function PageTextBlock({ blockId, data, pageRef, children, ref }) {
     return (
         <div ref={ref}>
             <div
-                className={"text_box_" + (data.subtype || "unknown")}
+                className={"text_box text_box_" + (data.subtype || "unknown")}
                 contentEditable
                 /*onClick={handleTextClick}*/ /*onBlur={handleTextLeave}*/ onInput={
                     handleTextChanged

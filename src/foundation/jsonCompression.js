@@ -1,4 +1,5 @@
 import jsonpack from "jsonpack";
+import { gunzipSync, strFromU8 } from 'fflate';
 
 export async function compress(data) {
     if (!data) return null;
@@ -19,10 +20,8 @@ export async function uncompress(compressedData) {
     if (!compressedData) return null;
     const uintData = Uint8Array.fromBase64(compressedData);
     //Reverse of compress
-    const decompressedStream = new Blob([uintData])
-        .stream()
-        .pipeThrough(new DecompressionStream("gzip"));
-    const response = await new Response(decompressedStream).text();
+    const decompressedStream = gunzipSync(uintData);
+    const response = strFromU8(decompressedStream);
     const unpacked = jsonpack.unpack(response);
     return unpacked;
 }
