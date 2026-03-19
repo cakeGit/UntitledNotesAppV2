@@ -73,6 +73,16 @@ export default function sharingDatabaseRoutes(addEndpoint) {
                     "User already has access to this notebook",
                 );
             }
+            let existingInvite = await db.get(
+                db.getQueryOrThrow("share.get_user_notebook_invite"),
+                [getUUIDBlob(notebookId), user.UserID], //Use the raw blob straight from user
+            );
+            if (existingInvite) {
+                throw new RequestError(
+                    "User already has an invite to this notebook",
+                );
+            }
+
 
             await db.run(db.getQueryOrThrow("share.send_notebook_access_invite"), [
                 getUUIDBlob(notebookId),

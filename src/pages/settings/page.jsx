@@ -23,14 +23,6 @@ export default function BuildPage() {
             "share/get_all_notebook_invites_for_user",
             {},
         );
-        console.log(
-            userInfo,
-            notebooksInfo,
-            "Owned shares: ",
-            ownedNotebookShares,
-            "Incoming shares: ",
-            incomingShares,
-        );
 
         return {
             userInfo,

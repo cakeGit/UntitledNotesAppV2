@@ -28,7 +28,7 @@ export async function fetchApiCached(endpoint, body = null, options = {}) {
     }
 }
 
-export async function fetchApi(endpoint, body = null, options = {}) {
+export async function fetchApi(endpoint, body = null, options = {}, suppressAlert = false) {
     if (fetchesInProgress[endpoint]) {
         return fetchesInProgress[endpoint];
     }
@@ -45,9 +45,6 @@ export async function fetchApi(endpoint, body = null, options = {}) {
     }
     const fetchInProgress = fetch(url, fetchOptions)
         .then(response => {
-            // if (!response.ok) {
-            //     throw new Error('Failed to fetch api: ' + response.statusText);
-            // }
             return response.json() || { success: false, error: "Empty response from server" };
         })
         .then(data => {
@@ -55,7 +52,11 @@ export async function fetchApi(endpoint, body = null, options = {}) {
                 if (data.effect == "needs_new_login" && window.location.pathname !== "/get_account") {
                     window.location.href = "/get_account";
                 }
-                throw new UnsuccessfulResponseError(data);
+                var error = new UnsuccessfulResponseError(data);
+                if (!suppressAlert) {
+                    alert(error.message);
+                }
+                throw error;
             }
             return data;
         });

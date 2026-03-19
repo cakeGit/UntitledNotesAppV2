@@ -16,6 +16,11 @@
     transition: opacity 0.1s ease-in-out;
 }
 
+.page_block_adder_empty_hint {
+    opacity: 1;
+    padding: 4px;
+}
+
 .page_block_dragger {
     margin-bottom: 1px;
 }
