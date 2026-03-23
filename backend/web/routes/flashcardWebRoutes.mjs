@@ -23,9 +23,11 @@ function getNodesWithParentFallback(nodes, parentFallbackNodes) {
         availableNodes.add(node.pageId);
     }
 
-    while (requiredParentsStack.length > 0) {//While we have unresolved dependencies
+    while (requiredParentsStack.length > 0) {
+        //While we have unresolved dependencies
         const parentId = requiredParentsStack.pop(); //Get the next parent we need
-        if (!availableNodes.has(parentId)) { //If we dont have in the nodes list
+        if (!availableNodes.has(parentId)) {
+            //If we dont have in the nodes list
             const parentNode = nodeById[parentId]; //Get the parent node from the fallback list
 
             if (!parentNode) continue; //If it doesent exist, skip
@@ -33,13 +35,40 @@ function getNodesWithParentFallback(nodes, parentFallbackNodes) {
             nodes.push(parentNode);
             availableNodes.add(parentNode.pageId);
 
-            if (parentNode.fileTreeParentId) { //If there is a transitive parent dependency, add it to the stack
+            if (parentNode.fileTreeParentId) {
+                //If there is a transitive parent dependency, add it to the stack
                 requiredParentsStack.push(parentNode.fileTreeParentId);
             }
         }
     }
 
     return nodes;
+}
+
+async function getPageTree(notebookId) {
+    //Get all pages in the notebook, regardless of if they have flashcards or not (as a flashcard page may be a child of a normal page)
+    const fallbackPages = await dbInterface.sendRequest(
+        "notebook/get_notebook_pages",
+        {
+            notebookId,
+        },
+    );
+
+    //Get the flat page data
+    const pages = await dbInterface.sendRequest(
+        "flashcards/get_selectable_pages",
+        { notebookId },
+    );
+
+    const combinedPages = getNodesWithParentFallback(pages, fallbackPages);
+
+    //Use the restructure tree module to turn it into a tree structure
+    const pageTree = restructureTree(
+        combinedPages,
+        "pageId",
+        "fileTreeParentId",
+    );
+    return { pageTree, pages };
 }
 
 export default function notebookWebRoutes(apiRouter) {
@@ -53,24 +82,45 @@ export default function notebookWebRoutes(apiRouter) {
             notebookId,
             userId,
         });
-        //Get all pages in the notebook, regardless of if they have flashcards or not (as a flashcard page may be a child of a normal page)
-        const fallbackPages = await dbInterface.sendRequest("notebook/get_notebook_pages", {
-            notebookId,
-        });
 
-        //Get the flat page data
-        const pages = await dbInterface.sendRequest(
-            "flashcards/get_selectable_pages",
-            { notebookId },
-        );
-
-        const combinedPages = getNodesWithParentFallback(pages, fallbackPages);
-
-        //Use the restructure tree module to turn it into a tree structure
-        const pageTree = restructureTree(combinedPages, "pageId", "fileTreeParentId");
-
+        const { pageTree } = await getPageTree(notebookId);
         return pageTree;
     });
+
+    //Combination of get pages and get flashcard info
+    apiRouter.for(
+        "/flashcards/get_selectable_pages_and_flashcards",
+        async (req) => {
+            let userId = await getOrThrowAuthorizedUserUUIDOfRequest(req);
+            let notebookId = req.body?.notebookId;
+
+            //Check the user has access to this notebook
+            await dbInterface.sendRequest(
+                "notebook/get_accessible_notebook_name",
+                {
+                    notebookId,
+                    userId,
+                },
+            );
+
+            const { pageTree, pages } = await getPageTree(notebookId);
+
+            const flashcards = [];
+
+            const pageIds = pages.map((page) => page.pageId);
+
+            for (const pageId of pageIds) {
+                //Make a request for each page's flashcards and collect them
+                const pageFlashcards = await dbInterface.sendRequest(
+                    "flashcards/get_flashcards_information_of_page",
+                    { pageId, userId },
+                );
+                flashcards.push(...(pageFlashcards.map(e => ({...e, pageId}))));
+            }
+
+            return { pageTree, flashcards };
+        },
+    );
 
     //When we are just starting a session, we want to get all the information of flashcards in the pages we selected
     apiRouter.for(
@@ -116,7 +166,6 @@ export default function notebookWebRoutes(apiRouter) {
         },
     );
 
-
     //This is the upload handling for after the session is complete
     apiRouter.for("/flashcards/update_flashcard_learning_data", async (req) => {
         let userId = await getOrThrowAuthorizedUserUUIDOfRequest(req);
@@ -127,9 +176,12 @@ export default function notebookWebRoutes(apiRouter) {
         }).throwRequestErrorIfInvalid();
 
         //Simply pass this to the database worker to handle after checking user and data presence
-        return await dbInterface.sendRequest("flashcards/update_flashcard_learning_data", {
-            userId,
-            flashcardLearningUpdates,
-        });
+        return await dbInterface.sendRequest(
+            "flashcards/update_flashcard_learning_data",
+            {
+                userId,
+                flashcardLearningUpdates,
+            },
+        );
     });
 }

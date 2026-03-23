@@ -14,7 +14,7 @@ export function useApi(handler) {
         handler()
             .then((result) => {
                 if (isMounted) {
-                    setData(result);
+                    setData({result});
                     setLoading(false);
                 }
             })
@@ -31,5 +31,5 @@ export function useApi(handler) {
         };
     }, [handler]);
 
-    return { data, loading, error };
+    return { data: data?.result, loading, error };
 }
