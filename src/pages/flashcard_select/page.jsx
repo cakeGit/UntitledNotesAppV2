@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { PageCenterContent } from "../../components/layout/pageCenterContent/component.jsx";
-import { fetchApi } from "../../foundation/api.js";
+import { tryFetchApi } from "../../foundation/api.js";
 import { useApi } from "../../foundation/useApiData.js";
 import "./style.css";
 import { AppLineBreak } from "../../components/app/line_break/component.jsx";
@@ -130,11 +130,11 @@ function BuildPage() {
     }
 
     const { data, loading, error } = useApi(async () => {
-        return await fetchApi("flashcards/get_selectable_pages", {
+        return await tryFetchApi("flashcards/get_selectable_pages", {
             notebookId,
         });
     });
-    if (loading || error) return <></>;
+    if (loading || error || !data) return <></>;
 
     function startFlashcardSession() {
         //Load selected ids into the session storage and send the user to the flashcard session page

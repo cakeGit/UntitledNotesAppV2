@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
 import { AppLineBreak } from "../../components/app/line_break/component";
 import { PageCenterContent } from "../../components/layout/pageCenterContent/component";
-import { fetchApi } from "../../foundation/api";
-import { useApi } from "../../foundation/useApiData";
+import { tryFetchApi } from "../../foundation/api";
 import { Fragment, useState } from "react";
 import { DeleteNotebookModal } from "./modals/deleteModal.jsx";
 import { RenameNotebookModal } from "./modals/renameModal.jsx";
@@ -10,16 +9,17 @@ import "./style.css";
 import { ShareNotebookModal } from "./modals/shareModal.jsx";
 import { LeaveNotebookModal } from "./modals/leaveModal.jsx";
 import { RevokeNotebookAccessModal } from "./modals/revokeModal.jsx";
+import { useApi } from "../../foundation/useApiData.js";
 
 export default function BuildPage() {
     const { data, loading, error } = useApi(async () => {
-        const userInfo = await fetchApi("get_current_user_info", {});
-        const notebooksInfo = await fetchApi("notebook/get_user_notebooks", {});
-        const ownedNotebookShares = await fetchApi(
+        const userInfo = await tryFetchApi("get_current_user_info", {});
+        const notebooksInfo = await tryFetchApi("notebook/get_user_notebooks", {});
+        const ownedNotebookShares = await tryFetchApi(
             "share/get_all_owned_notebook_shares",
             {},
         );
-        const incomingShares = await fetchApi(
+        const incomingShares = await tryFetchApi(
             "share/get_all_notebook_invites_for_user",
             {},
         );
@@ -48,7 +48,7 @@ export default function BuildPage() {
 
     //Notebook creation method when the create notebook button is clicked, calls the API and then reloads the page
     function createNewNotebook() {
-        fetchApi("notebook/create_notebook", {}).then(() => {
+        tryFetchApi("notebook/create_notebook", {})?.then(() => {
             window.location.href = window.location.href;
         });
     }
@@ -57,7 +57,7 @@ export default function BuildPage() {
     function acceptNotebookInvite(e, notebookId) {
         e.stopPropagation();
         e.preventDefault();
-        fetchApi("share/accept_notebook_invite", { notebookId }).then(() => {
+        tryFetchApi("share/accept_notebook_invite", { notebookId })?.then(() => {
             window.location.href = window.location.href;
         });
     }
@@ -65,7 +65,7 @@ export default function BuildPage() {
     function ignoreNotebookInvite(e, notebookId) {
         e.stopPropagation();
         e.preventDefault();
-        fetchApi("share/ignore_notebook_invite", { notebookId }).then(() => {
+        tryFetchApi("share/ignore_notebook_invite", { notebookId })?.then(() => {
             window.location.href = window.location.href;
         });
     }
@@ -80,20 +80,20 @@ export default function BuildPage() {
                 </h1>
                 <AppLineBreak />
                 <h2>Account information</h2>
-                <p>Display name: {data.userInfo.display_name}</p>
-                <p>Email: {data.userInfo.email}</p>
-                <p>Tag: @{data.userInfo.label_name}</p>
+                <p>Display name: {data?.userInfo?.display_name}</p>
+                <p>Email: {data?.userInfo?.email}</p>
+                <p>Tag: @{data?.userInfo?.label_name}</p>
                 <AppLineBreak />
                 <h2>Your notebooks</h2>
 
                 <div className="notebooks_options_container inset_container">
-                    {data.notebooksInfo.notebooks.map((notebook) => {
+                    {data?.notebooksInfo?.notebooks?.map((notebook) => {
                         const outgoingInvites =
-                            data.ownedNotebookShares.pendingShares[
+                            data?.ownedNotebookShares?.pendingShares?.[
                                 notebook.notebookId
                             ] || [];
                         const activeShares =
-                            data.ownedNotebookShares.shares[
+                            data?.ownedNotebookShares?.shares?.[
                                 notebook.notebookId
                             ] || [];
                         const showShareDetails =
@@ -175,10 +175,10 @@ export default function BuildPage() {
 
                 <h2>Notebook share invites</h2>
                 <div className="invites_options_container inset_container">
-                    {data.incomingShares.incomingShares.length === 0 ? (
+                    {data?.incomingShares?.incomingShares?.length === 0 ? (
                         <p>No pending invites</p>
                     ) : (
-                        data.incomingShares.incomingShares.map((invite) => (
+                        data?.incomingShares?.incomingShares?.map((invite) => (
                             <div
                                 key={invite.notebookId}
                                 className="invite_option"

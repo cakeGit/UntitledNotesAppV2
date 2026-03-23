@@ -4,7 +4,7 @@ import { PageCenterContent } from "../../components/layout/pageCenterContent/com
 import "./App.css";
 
 import { withAuthCheck } from "../../foundation/authApi.js";
-import { fetchApi } from "../../foundation/api.js";
+import { tryFetchApi } from "../../foundation/api.js";
 import { useState } from "react";
 import { FlashcardFloatingButton } from "../../components/app/flashcard_floating_button/component.jsx";
 import { useLocation } from "react-router-dom";
@@ -17,8 +17,8 @@ function BuildPage() {
     let [notebookName, setNotebookName] = useState(null);
 
     if (!user) {
-        fetchApi("get_current_user_info")
-            .then((data) => {
+        tryFetchApi("get_current_user_info")
+            ?.then((data) => {
                 setUser(data);
             })
             .catch((error) => {
@@ -33,8 +33,8 @@ function BuildPage() {
     const currentPageId = urlParams.get("page_id");
 
     if (!currentNotebookId) {
-        fetchApi("notebook/get_default_notebook")
-            .then((data) => {
+        tryFetchApi("notebook/get_default_notebook")
+            ?.then((data) => {
                 window.location.href = "/?notebook_id=" + data.notebook_id;
             })
             .catch((error) => {
@@ -42,10 +42,10 @@ function BuildPage() {
             });
         return <></>;
     } else {
-        fetchApi("notebook/get_accessible_notebook_name", {
+        tryFetchApi("notebook/get_accessible_notebook_name", {
             notebook_id: currentNotebookId,
         })
-            .then((data) => {
+            ?.then((data) => {
                 setNotebookName(data.name);
             })
             .catch((error) => {
@@ -60,10 +60,10 @@ function BuildPage() {
     }
 
     if (!currentPageId) {
-        fetchApi("notebook/get_default_page", {
+        tryFetchApi("notebook/get_default_page", {
             notebook_id: currentNotebookId,
         })
-            .then((data) => {
+            ?.then((data) => {
                 window.location.href =
                     "/?notebook_id=" +
                     currentNotebookId +

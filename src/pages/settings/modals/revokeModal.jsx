@@ -1,14 +1,14 @@
-import { fetchApi } from "../../../foundation/api";
+import { tryFetchApi } from "../../../foundation/api";
 import { SettingsModal } from "./settingsModal.jsx";
 
 //Modal inner component, which just goes inside the generic modal container
 //Contains a cancel and a revoke button while also providing a warning about which notebook access will be revoked
 function RevokeModalInner({ modal }) {
     function submitRevoke() {
-        fetchApi("share/revoke_notebook_share", {
+        tryFetchApi("share/revoke_notebook_share", {
             notebookId: modal.notebookId,
             revokeUserId: modal.revokeUserId,
-        }).then(() => {
+        })?.then(() => {
             modal.onSubmit();
         });
     }

@@ -1,13 +1,13 @@
-import { fetchApi } from "../../../foundation/api";
+import { tryFetchApi } from "../../../foundation/api";
 import { SettingsModal } from "./settingsModal.jsx";
 
 //Modal inner component, which just goes inside the generic modal container
 //Contains a cancel and a delete button while also providing a warning about which notebook will be deleted
 function DeleteModalInner({ modal }) {
     function submitDelete() {
-        fetchApi("notebook/delete_notebook", {
+        tryFetchApi("notebook/delete_notebook", {
             notebookId: modal.notebookId,
-        }).then(() => {
+        })?.then(() => {
             modal.onSubmit();
         });
     }

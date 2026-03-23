@@ -1,4 +1,4 @@
-import { fetchApi } from "../../../../foundation/api.js";
+import { tryFetchApi } from "../../../../foundation/api.js";
 import { useApi } from "../../../../foundation/useApiData.js";
 import "./style.css";
 
@@ -24,7 +24,7 @@ export function CurrentLoginUserInfo() {
                 <button
                     className="sign_out_button"
                     onClick={async () => {
-                        await fetchApi("sign_out");
+                        await tryFetchApi("sign_out");
                         window.location.reload();
                     }}
                 >

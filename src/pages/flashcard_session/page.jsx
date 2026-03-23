@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { PageCenterContent } from "../../components/layout/pageCenterContent/component.jsx";
-import { fetchApi } from "../../foundation/api.js";
+import { tryFetchApi } from "../../foundation/api.js";
 import { useApi } from "../../foundation/useApiData.js";
 import "./style.css";
 import { FlashcardSelfAssessTask } from "./tasks/selfAssessTask.jsx";
@@ -85,14 +85,14 @@ function BuildPage() {
     );
 
     const { data, loading, error } = useApi(async () => {
-        const response = await fetchApi(
+        const response = await tryFetchApi(
             "flashcards/get_flashcards_information_of_pages",
             {
                 pageIds: selectedPageIds,
             },
         );
 
-        return response.flashcards;
+        return response?.flashcards;
     });
     const initialData = structuredClone(data);
 
@@ -110,7 +110,7 @@ function BuildPage() {
     const [flashcardLearnedCount, setFlashcardLearnedCount] = useState(0);
     const [activeFlashcard, setActiveFlashcard] = useState(null);
 
-    if (loading || error) return <></>;
+    if (loading || error || !data) return <></>;
 
     if (!activeFlashcardBundleRef.current) {
         activeFlashcardBundleRef.current = getNextFlashcardBundleSafe(

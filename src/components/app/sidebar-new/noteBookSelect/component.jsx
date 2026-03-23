@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { fetchApi } from "../../../../foundation/api";
+import { tryFetchApi } from "../../../../foundation/api";
 import { useApi } from "../../../../foundation/useApiData";
 import "./style.css";
 import { useNavigate } from "react-router-dom";
 
 export function AppSidebarNoteBookSelect({ currentName, currentNotebookId }) {
     const { data, loading, error } = useApi(async () => {
-        const response = await fetchApi("notebook/get_user_notebooks");
+        const response = await tryFetchApi("notebook/get_user_notebooks");
+        if (!response) {
+            return [];
+        }
         return response.notebooks.filter(
             (notebook) => notebook.notebookId !== currentNotebookId,
         ); // Remove the current notebook

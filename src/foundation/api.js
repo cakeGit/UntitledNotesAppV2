@@ -28,6 +28,15 @@ export async function fetchApiCached(endpoint, body = null, options = {}) {
     }
 }
 
+export async function tryFetchApi(endpoint, body = null, options = {}, suppressAlert = false) {
+    try {
+        return await fetchApi(endpoint, body, options, suppressAlert);
+    } catch (error) {
+        console.log("API call failed (soft-fail, returning null):", error);
+        return null;
+    }
+}
+
 export async function fetchApi(endpoint, body = null, options = {}, suppressAlert = false) {
     if (fetchesInProgress[endpoint]) {
         return fetchesInProgress[endpoint];

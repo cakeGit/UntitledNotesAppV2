@@ -1,4 +1,4 @@
-import { fetchApi } from "../../../foundation/api";
+import { tryFetchApi } from "../../../foundation/api";
 import { useRef } from "react";
 import { SettingsModal } from "./settingsModal.jsx";
 
@@ -9,10 +9,10 @@ function RenameModalInner({ modal }) {
 
     //Create the submit function, which calls the API
     function submitRename() {
-        fetchApi("notebook/rename_notebook", {
+        tryFetchApi("notebook/rename_notebook", {
             notebookId: modal.notebookId,
             newName: renameNotebookInputRef.current.value,
-        }).then(() => {
+        })?.then(() => {
             //Once the api call finished, call onSubmit (closes the modal and reloads the page)
             modal.onSubmit();
         });

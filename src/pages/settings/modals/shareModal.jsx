@@ -1,4 +1,4 @@
-import { fetchApi } from "../../../foundation/api";
+import { tryFetchApi } from "../../../foundation/api";
 import { useRef } from "react";
 import { SettingsModal } from "./settingsModal.jsx";
 
@@ -11,10 +11,10 @@ function ShareModalInner({ modal }) {
     function submitShare() {
         const safeTagName = userToShareWithRef.current.value.replace(/^@/, "");
 
-        fetchApi("share/share_notebook_with_user", {
+        tryFetchApi("share/share_notebook_with_user", {
             notebookId: modal.notebookId,
             inviteUserLabelName: safeTagName,
-        }).then(() => {
+        })?.then(() => {
             //Once the api call finished, call onSubmit (closes the modal and reloads the page)
             modal.onSubmit();
         });

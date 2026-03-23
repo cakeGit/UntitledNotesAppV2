@@ -1,14 +1,14 @@
-import { fetchApi } from "../../../foundation/api";
+import { tryFetchApi } from "../../../foundation/api";
 import { SettingsModal } from "./settingsModal.jsx";
 
 //Modal inner component, which just goes inside the generic modal container
 //Contains a cancel and a leave button while also providing a warning about which notebook will be left
 function LeaveModalInner({ modal }) {
     function submitLeave() {
-        fetchApi("share/revoke_notebook_share", {
+        tryFetchApi("share/revoke_notebook_share", {
             notebookId: modal.notebookId,
             revokeUserId: modal.userId,
-        }).then(() => {
+        })?.then(() => {
             modal.onSubmit();
         });
     }

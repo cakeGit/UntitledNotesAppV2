@@ -3,7 +3,7 @@ import "./style.css";
 import { UserInfo } from "../../components/app/user_information/component.jsx";
 import { useRef } from "react";
 import { Validator } from "../../../backend/web/foundation_safe/validator.js";
-import { fetchApi } from "../../foundation/api.js";
+import { tryFetchApi } from "../../foundation/api.js";
 import { AppLineBreak } from "../../components/app/line_break/component.jsx";
 import { FlexCenter } from "../../components/app/flex_center/component.jsx";
 
@@ -30,11 +30,11 @@ function trySubmitCreateAccountInfo(displayName, jwt) {
         jwt,
     );
 
-    fetchApi("create_account", {
+    tryFetchApi("create_account", {
         display_name: displayNameValue,
         credential: jwt,
     })
-        .then((response) => {
+        ?.then((response) => {
             console.log("Account created successfully:", response);
             window.location.href = "/";
         })
