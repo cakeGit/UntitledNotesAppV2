@@ -145,9 +145,9 @@ function BuildPage() {
                 "flashcard_session_statistics",
                 JSON.stringify(statistics),
             );
-            fetchApi("flashcards/update_flashcard_learning_data", {
+            tryFetchApi("flashcards/update_flashcard_learning_data", {
                 flashcardLearningUpdates: flashcardLearningStacks,
-            }).then(() => {
+            })?.then(() => {
                 window.location.href = "/flashcard_complete";
             });
             return;

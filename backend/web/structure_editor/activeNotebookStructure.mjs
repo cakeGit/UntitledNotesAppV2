@@ -25,15 +25,15 @@ export class ActiveNotebookStructure extends ActiveSocketElement {
                 newParentId,
                 newIndex,
             );
-            this.broadcastCurrentStructure();
-            this.writeCurrentStructureToDatabase();
+            await this.broadcastCurrentStructure();
+            await this.writeCurrentStructureToDatabase();
         } else if (message.type === "delete_page") {
             const { pageId } = message;
             removeElement(this.structure, "pageId", pageId);
+            await this.writeCurrentStructureToDatabase();
             //Also call the database to delete the page and related content
             await dbInterface.sendRequest("delete_page", { pageId });
-            this.broadcastCurrentStructure();
-            this.writeCurrentStructureToDatabase();
+            await this.broadcastCurrentStructure();
         } else if (message.type === "request_new_page") {
             // For simplicity, just add a new page at the root
             const pageId = generateRandomUUID();
@@ -52,7 +52,7 @@ export class ActiveNotebookStructure extends ActiveSocketElement {
                 name: newPageMeta.name,
                 children: [],
             });
-            this.broadcastCurrentStructure();
+            await this.broadcastCurrentStructure();
         } else {
             throw new RequestError("Unknown message type: " + message.type);
         }
@@ -65,8 +65,8 @@ export class ActiveNotebookStructure extends ActiveSocketElement {
         });
     }
 
-    broadcastCurrentStructure() {
-        this.sendToAllClients({
+    async broadcastCurrentStructure() {
+        await this.sendToAllClients({
             type: "notebook_structure",
             structure: this.structure,
         });
@@ -81,7 +81,7 @@ export class ActiveNotebookStructure extends ActiveSocketElement {
         );
     }
 
-    updatePageNameInStructure(pageId, newName) {
+    async updatePageNameInStructure(pageId, newName) {
         function walkAndUpdateName(node, pageId, newName) {
             if (node.pageId === pageId) {
                 node.name = newName;
@@ -97,7 +97,7 @@ export class ActiveNotebookStructure extends ActiveSocketElement {
             return false;
         }
         if (walkAndUpdateName(this.structure, pageId, newName)) {
-            this.broadcastCurrentStructure();
+            await this.broadcastCurrentStructure();
         }
         logEditor(
             `Updated page name in structure for pageId ${pageId} to "${newName}"`,

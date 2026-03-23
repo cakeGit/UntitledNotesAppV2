@@ -85,7 +85,7 @@ export function startDraggingPage(
             pageElement.style.position = "absolute";
             pageElement.style.left =
                 reciprocalSmooth(xLock, event.pageX) + "px";
-            pageElement.style.top = event.pageY - yCenter + "px";
+            pageElement.style.top = event.clientY  - yCenter + "px";
             pageElement.style.pointerEvents = "none";
             pageElement.style.zIndex = 1000;
         }
@@ -110,6 +110,21 @@ export function startDraggingPage(
         currentDragInfoRef.current = null;
         window.removeEventListener("mousemove", onMouseMove);
         window.removeEventListener("mouseup", onMouseUp);
+
+        //Reset the dragged element's inline styles immediately so it snaps back
+        const pageElement = pageElementRef.current;
+        if (pageElement) {
+            pageElement.style.position = "";
+            pageElement.style.left = "";
+            pageElement.style.top = "";
+            pageElement.style.pointerEvents = "";
+            pageElement.style.zIndex = "";
+        }
+
+        if (activeHighlightTarget) {
+            activeHighlightTarget.current.style.opacity = 0;
+            activeHighlightTarget = null;
+        }
 
         //Send the new structure to the backend, when we get it back we will re-render
         const cursorPos = { x: event.clientX, y: event.clientY };

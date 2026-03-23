@@ -5,9 +5,9 @@ import "./style.css";
 export function CurrentLoginUserInfo() {
     //Make a request to the server to get current login user info
     const { data, loading, error } = useApi(async () => {
-        return await fetchApi("get_current_user_info");
+        return await tryFetchApi("get_current_user_info");
     });
-    if (loading || error) return <></>;
+    if (loading || error || !data) return <></>;
     return (
         <div className="current_login_user_info">
             {/* Google pretty much always blocks localhost from displaying the profile picture, so we add referrerpolicy="no-referrer", which basically hides the origin */}

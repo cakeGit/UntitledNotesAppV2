@@ -168,6 +168,7 @@ function NotebookStructureNode({
                             currentDragInfoRef={currentDragInfoRef}
                             socketRef={socketRef}
                             sendPageMove={sendPageMove}
+                            sendDeletePage={sendDeletePage}
                             setSidebarLock={setSidebarLock}
                             currentPageId={currentPageId}
                             optionsOpenPageId={optionsOpenPageId}

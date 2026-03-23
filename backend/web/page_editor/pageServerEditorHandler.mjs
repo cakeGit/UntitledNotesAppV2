@@ -108,7 +108,10 @@ export function handleRequest(activePage, ws, msg) {
                         activeNotebook.updatePageNameInStructure(
                             activePage.metadata.pageId,
                             metadata.name,
-                        );
+                        )
+                        .catch((e) => {
+                            console.log(`Error updating page name in notebook structure for notebook ${notebookId}:`, e);
+                        });
                     }
                 },
             );
