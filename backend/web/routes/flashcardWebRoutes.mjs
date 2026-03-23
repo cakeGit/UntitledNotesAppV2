@@ -3,6 +3,45 @@ import { ALL_FIELDS_PRESENT } from "../../web/foundation_safe/validations.js";
 import { dbInterface } from "../webDbInterface.mjs";
 import { restructureTree } from "../foundation/tree/treeStructureHelper.js";
 
+//Gets the list of nodes but includes some of parent fallback nodes such that no nodes are left without a parent
+function getNodesWithParentFallback(nodes, parentFallbackNodes) {
+    const nodeById = {};
+    for (const fallbackNode of parentFallbackNodes) {
+        if (!nodeById[fallbackNode.pageId]) {
+            nodeById[fallbackNode.pageId] = fallbackNode;
+        }
+    }
+    for (const node of nodes) {
+        nodeById[node.pageId] = node;
+    }
+
+    const requiredParentsStack = []; //Use a stack rather than queue because order doesent matter and stack is faster
+    const availableNodes = new Set();
+
+    for (const node of nodes) {
+        requiredParentsStack.push(node.fileTreeParentId);
+        availableNodes.add(node.pageId);
+    }
+
+    while (requiredParentsStack.length > 0) {//While we have unresolved dependencies
+        const parentId = requiredParentsStack.pop(); //Get the next parent we need
+        if (!availableNodes.has(parentId)) { //If we dont have in the nodes list
+            const parentNode = nodeById[parentId]; //Get the parent node from the fallback list
+
+            if (!parentNode) continue; //If it doesent exist, skip
+
+            nodes.push(parentNode);
+            availableNodes.add(parentNode.pageId);
+
+            if (parentNode.fileTreeParentId) { //If there is a transitive parent dependency, add it to the stack
+                requiredParentsStack.push(parentNode.fileTreeParentId);
+            }
+        }
+    }
+
+    return nodes;
+}
+
 export default function notebookWebRoutes(apiRouter) {
     //For the user to get all pages they can use for flashcards, when they select
     apiRouter.for("/flashcards/get_selectable_pages", async (req) => {
@@ -14,13 +53,22 @@ export default function notebookWebRoutes(apiRouter) {
             notebookId,
             userId,
         });
+        //Get all pages in the notebook, regardless of if they have flashcards or not (as a flashcard page may be a child of a normal page)
+        const fallbackPages = await dbInterface.sendRequest("notebook/get_notebook_pages", {
+            notebookId,
+        });
+
         //Get the flat page data
         const pages = await dbInterface.sendRequest(
             "flashcards/get_selectable_pages",
             { notebookId },
         );
+
+        const combinedPages = getNodesWithParentFallback(pages, fallbackPages);
+
         //Use the restructure tree module to turn it into a tree structure
-        const pageTree = restructureTree(pages, "pageId", "fileTreeParentId");
+        const pageTree = restructureTree(combinedPages, "pageId", "fileTreeParentId");
+
         return pageTree;
     });
 
