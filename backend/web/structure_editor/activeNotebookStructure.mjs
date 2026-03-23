@@ -3,7 +3,7 @@ import { generateRandomUUID } from "../../database/uuidBlober.mjs";
 import { RequestError } from "../foundation_safe/requestError.js";
 import { dbInterface } from "../webDbInterface.mjs";
 import { destructureTree } from "../foundation/tree/treeStructureHelper.js";
-import { moveElement } from "../foundation/tree/treeHelper.mjs";
+import { moveElement, removeElement } from "../foundation/tree/treeHelper.mjs";
 import { logEditor } from "../../logger.mjs";
 
 export class ActiveNotebookStructure extends ActiveSocketElement {
@@ -25,6 +25,13 @@ export class ActiveNotebookStructure extends ActiveSocketElement {
                 newParentId,
                 newIndex,
             );
+            this.broadcastCurrentStructure();
+            this.writeCurrentStructureToDatabase();
+        } else if (message.type === "delete_page") {
+            const { pageId } = message;
+            removeElement(this.structure, "pageId", pageId);
+            //Also call the database to delete the page and related content
+            await dbInterface.sendRequest("delete_page", { pageId });
             this.broadcastCurrentStructure();
             this.writeCurrentStructureToDatabase();
         } else if (message.type === "request_new_page") {

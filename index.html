@@ -9,19 +9,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- Updated src to point to your actual entry file -->
     <script type="module" src="/src/index.jsx"></script>
-    <!--
-      globally disable pasing content into contenteditable
-      Source: https://stackoverflow.com/questions/58980235/stop-pasting-html-style-in-a-contenteditable-div-only-paste-the-plain-text
-    -->
-    <script>
-      var ce = document.querySelector('[contenteditable]')
-      ce.addEventListener('paste', function (e) {
-        e.preventDefault()
-        var text = e.clipboardData.getData('text/plain')
-        document.execCommand('insertText', false, text)
-      })
-    </script>
   </body>
 </html>

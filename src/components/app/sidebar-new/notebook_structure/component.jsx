@@ -3,6 +3,9 @@ import { ALL_FIELDS_PRESENT } from "../../../../../backend/web/foundation_safe/v
 import { startDraggingPage } from "./pageDrag";
 import "./style.css";
 import { Link } from "react-router-dom";
+import { BsThreeDotsVertical } from "react-icons/bs";
+import { useModal } from "../../../../foundation/modals/genericModal.jsx";
+import { DeletePageModal } from "./modals/deleteModal.jsx";
 
 function NotebookHighlightTarget({ ref }) {
     return (
@@ -38,9 +41,13 @@ function NotebookStructureNode({
     currentDragInfoRef,
     socketRef,
     sendPageMove,
+    sendDeletePage,
     first,
     setSidebarLock,
     currentPageId,
+    optionsOpenPageId,
+    setOptionsOpenPageId,
+    modalHook
 }) {
     const pageRef = useRef();
     const abovePlaceTargetRef = useRef();
@@ -56,6 +63,8 @@ function NotebookStructureNode({
         pageId: item.pageId,
         parentId: parentId,
     });
+
+    const optionsOpen = optionsOpenPageId === item.pageId;
 
     return (
         <div>
@@ -87,23 +96,55 @@ function NotebookStructureNode({
                         {item.name || "(untitled)"}
                     </Link>
 
-                    <button
-                        style={{ display: "block" }}
-                        onClick={() =>
-                            startDraggingPage(
-                                currentDragInfoRef,
-                                structurePlaceTargets,
-                                item.pageId,
-                                pageRef,
-                                socketRef,
-                                sendPageMove,
-                                setSidebarLock
-                            )
-                        }
-                        className="page_structure_drag_button"
-                    >
-                        =
-                    </button>
+                    <div>
+                        {optionsOpen && (
+                            <div className="page_block_options">
+                                <div className="page_block_options_container">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            modalHook.openModal(
+                                                new DeletePageModal(
+                                                    () => sendDeletePage.current(item.pageId),
+                                                    item.name,
+                                                    modalHook
+                                                )
+                                            );
+                                        }}
+                                        className="page_block_binner"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        <button
+                            style={{ display: "block" }}
+                            onMouseDown={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                if (e.button === 0) {
+                                    startDraggingPage(
+                                        currentDragInfoRef,
+                                        structurePlaceTargets,
+                                        item.pageId,
+                                        pageRef,
+                                        socketRef,
+                                        sendPageMove,
+                                        setSidebarLock,
+                                    );
+                                }
+                            }}
+                            onContextMenu={(e) => {
+                                e.preventDefault();
+                                setOptionsOpenPageId(item.pageId);
+                            }}
+                            className={`page_structure_drag_button ${optionsOpenPageId === item.pageId ? "page_structure_drag_button_open" : ""}`}
+                        >
+                            <BsThreeDotsVertical />
+                        </button>
+                    </div>
                 </div>
 
                 <div
@@ -129,6 +170,9 @@ function NotebookStructureNode({
                             sendPageMove={sendPageMove}
                             setSidebarLock={setSidebarLock}
                             currentPageId={currentPageId}
+                            optionsOpenPageId={optionsOpenPageId}
+                            setOptionsOpenPageId={setOptionsOpenPageId}
+                            modalHook={modalHook}
                         />
                     ) : (
                         <NotebookHighlightTarget
@@ -152,8 +196,12 @@ function NotebookStructureLevel({
     currentDragInfoRef,
     socketRef,
     sendPageMove,
+    sendDeletePage,
     setSidebarLock,
     currentPageId,
+    optionsOpenPageId,
+    setOptionsOpenPageId,
+    modalHook
 }) {
     let first = true;
     return (
@@ -172,9 +220,13 @@ function NotebookStructureLevel({
                             currentDragInfoRef={currentDragInfoRef}
                             socketRef={socketRef}
                             sendPageMove={sendPageMove}
+                            sendDeletePage={sendDeletePage}
                             first={first}
                             setSidebarLock={setSidebarLock}
                             currentPageId={currentPageId}
+                            optionsOpenPageId={optionsOpenPageId}
+                            setOptionsOpenPageId={setOptionsOpenPageId}
+                            modalHook={modalHook}
                         />
                     );
                     first = false;
@@ -198,7 +250,7 @@ function handleStructureEditorMessage(message, updateStructure) {
         default:
             console.warn(
                 "Unknown message type from structure editor:",
-                message.type
+                message.type,
             );
     }
 }
@@ -206,6 +258,9 @@ function handleStructureEditorMessage(message, updateStructure) {
 export function NotebookStructureView({ notebookId, setSidebarLock }) {
     let [notebookStructure, setNotebookStructure] = useState(null);
     let [rerenderKey, setRerenderKey] = useState(0);
+    let [optionsOpenPageId, setInnerOptionsOpenPageId] = useState(null);
+    const modalHook = useModal();
+
     let currentDragInfoRef = useRef(null);
     let socketRef = useRef(null);
 
@@ -213,11 +268,32 @@ export function NotebookStructureView({ notebookId, setSidebarLock }) {
 
     const requestNewPage = useRef(() => {});
     const sendPageMove = useRef(() => {});
+    const sendDeletePage = useRef(() => {});
+
+    const handleClickOutside = (event) => {
+        if (!event.target.closest(".page_block_options")) {
+            setInnerOptionsOpenPageId(null);
+            setSidebarLock(false);
+            document.removeEventListener("mousedown", handleClickOutside);
+        }
+    };
+
+    function setOptionsOpenPageId(pageId) {
+        setInnerOptionsOpenPageId(pageId);
+        if (pageId) {
+            //If opening to a page, lock sidebar and close on click outside. If closing, remove click listener and unlock sidebar
+            setSidebarLock(true);
+            document.addEventListener("mousedown", handleClickOutside);
+        } else {
+            setSidebarLock(false);
+            document.removeEventListener("mousedown", handleClickOutside);
+        }
+    }
 
     //Open a websocket connection to the structure editor for this notebook
     useEffect(() => {
         const ws = new WebSocket(
-            `ws://${window.location.host}/structure_editor?notebookId=${notebookId}`
+            `ws://${window.location.host}/structure_editor?notebookId=${notebookId}`,
         );
 
         ws.onopen = () => {
@@ -226,26 +302,28 @@ export function NotebookStructureView({ notebookId, setSidebarLock }) {
                 console.log("Requesting new page");
                 ws.send(
                     JSON.stringify({
-                        type: "request_new_page", //Kinda debug rn, since there is no information about where we want the page or what name
-                    })
+                        type: "request_new_page", //Ideally we would allow a user to immediatley submit a name but this is fine for now
+                    }),
                 );
             };
             sendPageMove.current = (pageId, newParentId, newIndex) => {
-                console.log(
-                    "Sending page move:",
-                    pageId,
-                    newParentId,
-                    newIndex
-                );
                 ws.send(
                     JSON.stringify({
                         type: "move_page",
                         pageId,
                         newParentId,
                         newIndex,
-                    })
+                    }),
                 );
             };
+            sendDeletePage.current = (pageId) => {
+                ws.send(
+                    JSON.stringify({
+                        type: "delete_page",
+                        pageId,
+                    }),
+                );
+            }
         };
 
         ws.onmessage = (event) => {
@@ -258,7 +336,7 @@ export function NotebookStructureView({ notebookId, setSidebarLock }) {
             } catch (error) {
                 console.error(
                     "Error handling message from structure editor:",
-                    error
+                    error,
                 );
             }
         };
@@ -269,7 +347,7 @@ export function NotebookStructureView({ notebookId, setSidebarLock }) {
     }, [notebookId]);
 
     const currentPageId = new URLSearchParams(window.location.search).get(
-        "page_id"
+        "page_id",
     );
 
     return (
@@ -282,8 +360,12 @@ export function NotebookStructureView({ notebookId, setSidebarLock }) {
                 currentDragInfoRef={currentDragInfoRef}
                 socketRef={socketRef}
                 sendPageMove={sendPageMove}
+                sendDeletePage={sendDeletePage}
                 setSidebarLock={setSidebarLock}
                 currentPageId={currentPageId}
+                optionsOpenPageId={optionsOpenPageId}
+                setOptionsOpenPageId={setOptionsOpenPageId}
+                modalHook={modalHook}
             />
 
             <div className="page_structure_new_page_container">
@@ -294,6 +376,7 @@ export function NotebookStructureView({ notebookId, setSidebarLock }) {
                     +
                 </button>
             </div>
+            {modalHook.render()}
         </>
     );
 }

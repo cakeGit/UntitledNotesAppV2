@@ -1,10 +1,30 @@
 .page_structure_drag_button {
-    border: none;
     background: none;
     cursor: grab;
-    font-size: 16px;
     margin-right: 8px;
-    color: #888;
+    padding: 2px;
+    border: 2px solid var(--color-softest-border);
+    font-weight: bold;
+    border-radius: 6px;
+    padding: 0;
+    height: 13px;
+    box-sizing: initial;
+    justify-content: center;
+    align-items: center;
+    width: auto;
+    cursor: grab;
+    font-family: monospace;
+    opacity: 0.2;
+    display: flex;
+    text-align: center;
+    transition: opacity 0.1s ease-in-out;
+    z-index: 3005;
+    position: relative;
+    background-color: white;
+}
+
+.page_structure_drag_button:hover, .page_structure_drag_button_open {
+    opacity: 1;
 }
 
 .notebook_structure_page_name {
@@ -30,4 +50,5 @@
     justify-content: center;
     align-items: center;
     width: 100%;
+    margin-bottom: 4px;
 }

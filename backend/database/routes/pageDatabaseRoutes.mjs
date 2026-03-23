@@ -1,6 +1,7 @@
 import { adaptJsObjectToSql } from "../foundation/adapter.mjs";
 import { readPageFromDatabase } from "../page/deserializer.mjs";
 import { writePageToDatabase } from "../page/serializer.mjs";
+import { getUUIDBlob } from "../uuidBlober.mjs";
 
 export default function pageDatabaseRoutes(addEndpoint) {
     addEndpoint("get_page_data", async (db, message, response) => {
@@ -31,5 +32,23 @@ export default function pageDatabaseRoutes(addEndpoint) {
         return {
             hasAccess: !!pageWithAccess,
         };
+    });
+
+    addEndpoint("delete_page", async (db, message, response) => {
+        //Delete blocks in page
+        await db.run(
+            db.getQueryOrThrow("page.delete_blocks_in_page"),
+            {
+                $pageId: getUUIDBlob(message.pageId),
+            }
+        );
+        //Then, delete all the actual contents
+        await db.run(
+            db.getQueryOrThrow("page.delete_page_meta"),
+            adaptJsObjectToSql({
+                pageId: message.pageId,
+            }),
+        );
+        return { success: true };
     });
 }
