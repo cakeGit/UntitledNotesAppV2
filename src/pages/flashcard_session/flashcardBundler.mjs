@@ -1,6 +1,6 @@
 import { generateMultiChoiceOptions } from "./tasks/helper/multiChoiceHelper.mjs";
 
-function getFlashcardPriority(flashcard) {
+export function getFlashcardPriority(flashcard) {
     const l1 = flashcard.learningHistory1 || 0;
     const l2 = flashcard.learningHistory2 || 0;
     const l3 = flashcard.learningHistory3 || 0;

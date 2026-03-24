@@ -1,0 +1,16 @@
+.flashcard_tree_sidebar {
+    border-radius: 10px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 340px;
+    bottom: 10px;
+    border: 3px solid var(--color-soft-border);
+    background-color: var(--color-pure-background);
+    padding: 10px;
+    z-index: 100;
+}
+
+.flashcard_tree_sidebar_flashcard_container {
+    width: 300px;
+}

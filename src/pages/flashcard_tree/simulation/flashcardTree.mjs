@@ -22,6 +22,8 @@ export class TreeNode {
         //Store the last position for verlet integration
         this.previousPosition = { x: 0, y: 0 };
         this.simulationId = crypto.randomUUID(); //Ahead of time, create a unique id for reference in simulation
+
+        this.flashcardLinkId = null; //Only for flashcard nodes, they may link the original ID for reference
     }
 
     getRenderedWidth() {
@@ -106,8 +108,8 @@ function createSplitSubnodes(children, lengthFactor = 1) {
 
 //Turn a flashcard object into a tooltip string, giving a rough preview (should possibly do a full preview on the side)
 function getTooltipOfFlashcard(flashcard) {
-    return "Front: " + (flashcard.frontCanvasDocumentData ? "[Cavas]" : "") + (flashcard.frontImageResourceId ? "[Image]" : "") + flashcard.frontText + "\n" +
-    "Back: " + (flashcard.backCanvasDocumentData ? "[Cavas]" : "") + (flashcard.backImageResourceId ? "[Image]" : "") + flashcard.backText;
+    return (flashcard.frontCanvasDocumentData ? "[Cavas] " : "") + (flashcard.frontImageResourceId ? "[Image] " : "") + flashcard.frontText + "\n" +
+    " | " + (flashcard.backCanvasDocumentData ? "[Cavas] " : "") + (flashcard.backImageResourceId ? "[Image] " : "") + flashcard.backText;
 }
 
 //First step, create the tree with no geometric data to start
@@ -135,6 +137,7 @@ function createTreeTopologyFromData(pageTree, flashcards) {
 
         for (const flashcard of pageFlashcards) {
             const flashcardNode = new TreeNode(NODE_TYPE.Flashcard, getTooltipOfFlashcard(flashcard));
+            flashcardNode.flashcardLinkId = flashcard.flashcardLinkId;
             flashcardNodes.push(flashcardNode);
         }
 

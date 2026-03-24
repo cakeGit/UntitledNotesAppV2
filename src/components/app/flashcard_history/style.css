@@ -1,0 +1,33 @@
+.flashcard_history {
+    display: inline-block;
+}
+
+.flashcard_history_element {
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    border: 2px solid var(--color-border);
+    content: "";
+    display: inline-block;
+    margin-right: 4px;
+}
+
+.flashcard_history_element_easy {
+    background-color: var(--color-success);
+}
+
+.flashcard_history_element_medium {
+    background-color: var(--color-medium);
+}
+
+.flashcard_history_element_hard {
+    background-color: var(--color-error);
+}
+
+.flashcard_history_element_mastered {
+    background-color: var(--color-accent) !important;
+}
+
+.flashcard_history_time {
+    color: gray;
+}

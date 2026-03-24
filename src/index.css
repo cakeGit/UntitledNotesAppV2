@@ -38,6 +38,9 @@ code {
   --color-success: #28A745;
   --color-success-light: #D4EDDA;
   --color-text-on-success: #155724;
+  --color-medium: #FFC107;
+  --color-medium-light: #FFECB3;
+  --color-text-on-medium: #856404;
   --color-error: #DC3545;
   --color-soft-error: #F8D7DA;
   --color-text-on-error: #721C24;

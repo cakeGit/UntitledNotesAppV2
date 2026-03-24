@@ -25,9 +25,13 @@ export class TreeFocusHandler {
         const W = this.initialRect.width;
         const H = this.initialRect.height;
         const k = this.currentZoom;
+        const minX = W - k * right;
+        const maxX = -k * left;
+        const minY = H - k * bottom;
+        const maxY = -k * top;
         this.currentFocusOffset = {
-            x: Math.max(W - k * right, Math.min(-k * left, this.currentFocusOffset.x)),
-            y: Math.max(H - k * bottom, Math.min(-k * top, this.currentFocusOffset.y)),
+            x: minX > maxX ? (minX + maxX) / 2 : Math.max(minX, Math.min(maxX, this.currentFocusOffset.x)),
+            y: minY > maxY ? (minY + maxY) / 2 : Math.max(minY, Math.min(maxY, this.currentFocusOffset.y)),
         };
     }
 
@@ -92,7 +96,7 @@ export class TreeFocusHandler {
 
         const zoomSensitivity = 0.001;
         const zoomDelta = 1 - e.deltaY * zoomSensitivity;
-        const newZoom = Math.max(1, this.currentZoom * zoomDelta);
+        const newZoom = Math.max(1.25, this.currentZoom * zoomDelta);
 
         //Calculate the new focus offset to keep the zoom centered on the cursor
         this.currentFocusOffset = {
@@ -120,6 +124,17 @@ export class TreeFocusHandler {
             top: contentRect.top - this.initialRect.top,
             bottom: contentRect.bottom - this.initialRect.top,
         };
+
+        // Center the content in the viewport on first load at 3x zoom
+        const initialZoom = 3;
+        this.currentZoom = initialZoom;
+        const svgCenterX = (this.contentBounds.left + this.contentBounds.right) / 2;
+        const svgCenterY = (this.contentBounds.top + this.contentBounds.bottom) / 2;
+        this.currentFocusOffset = {
+            x: this.initialRect.width / 2 - svgCenterX * initialZoom,
+            y: this.initialRect.height / 2 - svgCenterY * initialZoom,
+        };
+        this.applyTransforms();
 
         this.boundOnMouseDown = this.onMouseDown.bind(this);
         this.boundOnMouseMove = this.onMouseMove.bind(this);

@@ -1,6 +1,7 @@
 import { useApi } from "../../foundation/useApiData.js";
 import { tryFetchApi } from "../../foundation/api.js";
 import { FlashcardTreeView } from "./view/treeView.jsx";
+import "./style.css";
 
 function BuildPage() {
     const { data, loading, error } = useApi(async () => {
