@@ -16,7 +16,8 @@ SELECT
     AssignmentBlocks.DescriptionText,
     AssignmentBlocks.LinkText,
     AssignmentBlocks.DueDate,
-    AssignmentBlocks.Completed
+    AssignmentBlocks.Completed,
+    ResourceBlocks.LinkText AS ResourceLinkText
 FROM Blocks
 
 LEFT JOIN TextBlocks ON Blocks.BlockID = TextBlocks.BlockID AND Blocks.Type = 'text'
@@ -25,5 +26,6 @@ LEFT JOIN DrawingCanvasBlocks ON Blocks.BlockID = DrawingCanvasBlocks.BlockID AN
 LEFT JOIN ImageBlocks ON Blocks.BlockID = ImageBlocks.BlockID AND Blocks.Type = 'image'
 LEFT JOIN AssignmentBlocks ON Blocks.BlockID = AssignmentBlocks.BlockID AND Blocks.Type = 'assignment'
 LEFT JOIN MathBlocks ON Blocks.BlockID = MathBlocks.BlockID AND Blocks.Type = 'math'
+LEFT JOIN ResourceBlocks ON Blocks.BlockID = ResourceBlocks.BlockID AND Blocks.Type = 'resource'
 
 WHERE Blocks.PageID = ?;

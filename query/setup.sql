@@ -94,6 +94,11 @@ CREATE TABLE IF NOT EXISTS AssignmentBlocks (
     Completed INTEGER
 );
 
+CREATE TABLE IF NOT EXISTS ResourceBlocks (
+    BlockID BLOB PRIMARY KEY,
+    LinkText TEXT
+);
+
 CREATE TABLE IF NOT EXISTS ImageResources (
     ImageResourceID BLOB PRIMARY KEY,
     OwnerUserID BLOB NOT NULL,

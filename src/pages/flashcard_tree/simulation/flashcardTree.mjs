@@ -106,10 +106,16 @@ function createSplitSubnodes(children, lengthFactor = 1) {
     return [leftNode, rightNode];
 }
 
+function clampText(text, maxLength) {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength - 3) + "...";
+}
+
 //Turn a flashcard object into a tooltip string, giving a rough preview (should possibly do a full preview on the side)
 function getTooltipOfFlashcard(flashcard) {
-    return (flashcard.frontCanvasDocumentData ? "[Cavas] " : "") + (flashcard.frontImageResourceId ? "[Image] " : "") + flashcard.frontText + "\n" +
-    " | " + (flashcard.backCanvasDocumentData ? "[Cavas] " : "") + (flashcard.backImageResourceId ? "[Image] " : "") + flashcard.backText;
+    return (flashcard.frontCanvasDocumentData ? "[Cavas] " : "") + (flashcard.frontImageResourceId ? "[Image] " : "") + clampText(flashcard.frontText, 60) + "\n" +
+    " | " + (flashcard.backCanvasDocumentData ? "[Cavas] " : "") + (flashcard.backImageResourceId ? "[Image] " : "") + clampText(flashcard.backText, 50);
 }
 
 //First step, create the tree with no geometric data to start

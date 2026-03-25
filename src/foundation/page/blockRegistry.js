@@ -64,5 +64,10 @@ export const BLOCK_REGISTRY = {
         name: "Maths",
         description: "Write mathematical equations quicky",
         type: "maths",
-    }
+    },
+    resource: {
+        name: "Resource",
+        description: "A block for linking to an external resource.",
+        type: "resource",
+    },
 };

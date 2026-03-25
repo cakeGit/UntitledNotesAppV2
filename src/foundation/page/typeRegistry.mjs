@@ -6,6 +6,7 @@ import { PageImageBlock } from "../../components/blocks/image/image";
 import { PageMathBlock } from "../../components/blocks/math/math.jsx";
 import { PageAssignmentsContainerBlock } from "../../components/blocks/assignments_container/assignment_container.jsx";
 import { PageAssignmentBlock } from "../../components/blocks/assignment/assignment.jsx";
+import { PageResourceBlock } from "../../components/blocks/resource/resource.jsx";
 
 export const BLOCK_TYPE_REGISTRY = {
     text: {
@@ -58,5 +59,8 @@ export const BLOCK_TYPE_REGISTRY = {
     },
     image: {
         component: PageImageBlock,
+    },
+    resource: {
+        component: PageResourceBlock,
     },
 };

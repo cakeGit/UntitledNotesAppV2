@@ -30,8 +30,7 @@ export function renderChildrenForBlock(blockId, children, content, pageRef) {
     const blockType = BLOCK_TYPE_REGISTRY[content[blockId]?.type];
     const childSorting = blockType?.childSorting;
 
-    if (childSorting) {
-        console.log("Sorting children for block", blockId, children);
+    if (childSorting && children && children.length > 1) {
         //if there is sorting, ensure we create a new array to avoid mutating the original content,
         children = [...children];
         //and then sort the children using the provided sorting function, getting the content from each node
@@ -39,16 +38,6 @@ export function renderChildrenForBlock(blockId, children, content, pageRef) {
             const childAContent = pageRef.current.content[childA.blockId];
             const childBContent = pageRef.current.content[childB.blockId];
             const result = childSorting(childAContent, childBContent);
-            console.log(
-                "Comparing children",
-                childA.blockId,
-                childAContent,
-                "and",
-                childB.blockId,
-                childBContent,
-                "result:",
-                result,
-            );
             return result;
         });
         console.log("Sorted children for block", children);

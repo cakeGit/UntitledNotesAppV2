@@ -29,3 +29,7 @@ WHERE $Type = 'assignment';
 REPLACE INTO MathBlocks (BlockID, MathContent)
 SELECT $BlockID, $MathContent
 WHERE $Type = 'math';
+
+REPLACE INTO ResourceBlocks (BlockID, LinkText)
+SELECT $BlockID, $ResourceLinkText
+WHERE $Type = 'resource';
