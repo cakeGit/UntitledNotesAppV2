@@ -298,9 +298,7 @@ export function NotebookStructureView({ notebookId, setSidebarLock }) {
         );
 
         ws.onopen = () => {
-            console.log("Connected to notebook structure editor WebSocket");
             requestNewPage.current = () => {
-                console.log("Requesting new page");
                 ws.send(
                     JSON.stringify({
                         type: "request_new_page", //Ideally we would allow a user to immediatley submit a name but this is fine for now

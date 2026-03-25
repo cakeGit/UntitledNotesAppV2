@@ -20,7 +20,7 @@ export function getAuthToken() {
 export function withAuthCheck() {
     //Check for existing cookie, if not there, then send the user to login page (if not already there)
     if (!getAuthToken() && !window.location.href.endsWith('/get_account')) {
-        console.log("No auth token found, redirecting to login page");
+        console.warn("No auth token found, redirecting to login page");
         window.location.href = '/get_account';
     }
 }

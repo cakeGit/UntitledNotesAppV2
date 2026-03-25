@@ -66,14 +66,3 @@ export function onBlurTextAdditionalStyles() {
         }
     }
 }
-export function onSelectionChange(e) {
-//     //Check for if current selection is a style and if so upate the state
-//     for (const styleName in extraStyles) {
-//         const style = extraStyles[styleName];
-//         const active = style.isActiveInCurrentSelection();
-//         console.log("Style " + styleName + " active in selection: " + active);
-//         if (active !== style.isActive()) {
-//             style.toggleActive(active);
-//         }
-//     }
-}

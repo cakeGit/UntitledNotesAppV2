@@ -10,7 +10,7 @@
     justify-content: center;
     margin-top: 10px;
     background-color: var(--color-secondary-background);
-    z-index: 3005;
+    z-index: 4007;
     position: relative;
 }
 
@@ -26,7 +26,7 @@
     top: -20px;
     padding: 2px;
     padding-top: 22px;
-    z-index: 3000;
+    z-index: 4000;
     background-color: var(--color-secondary-background);
     border: 3px solid var(--color-soft-border);
     border-radius: 20px;

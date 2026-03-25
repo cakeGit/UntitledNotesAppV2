@@ -4,7 +4,7 @@ import { useTargetableSubcomponentContainer } from "../foundation/useTargetableS
 import { AppLineBreak } from "../../app/line_break/component.jsx";
 import { DeleteBlockOperation } from "../../../../backend/web/foundation_safe/page/pageOperations.js";
 import DOMPurify from "dompurify";
-import { onBlurTextAdditionalStyles, onKeyDownForTextAdditionalStyles, onSelectionChange } from "./textAdditionalStyleHelper.jsx";
+import { onBlurTextAdditionalStyles, onKeyDownForTextAdditionalStyles } from "./textAdditionalStyleHelper.jsx";
 let textRenderAutofocusId = null; //Used to make the next time a text block renders of this id to focus the box
 
 export function PageTextBlock({ blockId, data, pageRef, children, blockRef }) {
@@ -176,7 +176,6 @@ export function PageTextBlock({ blockId, data, pageRef, children, blockRef }) {
                             onKeyDownForTextAdditionalStyles(e);
                             handlePotentialDelete(e);
                         }}
-                        onSelect={onSelectionChange}
                         ref={textInputRef}
                         placeholder="Write text here... Type + to add blocks"
                     ></div>

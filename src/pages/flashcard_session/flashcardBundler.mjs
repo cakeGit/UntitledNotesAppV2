@@ -126,7 +126,6 @@ export function getNextFlashcardBundle(
             averagePriority,
             bundleSize,
         );
-        console.log("Introducing", numNewCards, "new flashcards into the bundle from an average priority of", averagePriority.toFixed(2));
         for (let i = 0; i < numNewCards; i++) {
             if (!flashcards[i] || flashcards[i].priority !== Infinity) break;
             flashcardBundle[flashcardBundle.length - 1 - i] = flashcards[i]; //Fill in from the back of the bundle (lowest priority cards)

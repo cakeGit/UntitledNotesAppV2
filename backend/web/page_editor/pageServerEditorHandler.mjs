@@ -110,7 +110,7 @@ export function handleRequest(activePage, ws, msg) {
                             metadata.name,
                         )
                         .catch((e) => {
-                            console.log(`Error updating page name in notebook structure for notebook ${notebookId}:`, e);
+                            console.error(`Error updating page name in notebook structure for notebook ${notebookId}:`, e);
                         });
                     }
                 },

@@ -21,7 +21,6 @@ export function AppSidebarNoteBookSelect({ currentName, currentNotebookId }) {
 
 
     function closeSelect() {
-        console.log("Closing notebook select");
         setSelectOpen(false);
         document.removeEventListener("click", checkForClickOffSelect);
     }

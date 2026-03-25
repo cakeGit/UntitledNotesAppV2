@@ -40,7 +40,6 @@ export function renderChildrenForBlock(blockId, children, content, pageRef) {
             const result = childSorting(childAContent, childBContent);
             return result;
         });
-        console.log("Sorted children for block", children);
     }
     return renderChildBlocks(children, content, pageRef);
 }

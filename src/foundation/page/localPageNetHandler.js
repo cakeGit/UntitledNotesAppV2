@@ -23,14 +23,13 @@ export class PageNetHandler {
         ws.onmessage = (event) => {
             const msg = JSON.parse(event.data);
             if (msg.type === "invalid_close_connection") {
-                console.log(
+                console.warn(
                     "Closing local editor connection due to invalid message",
                 );
                 alert(
                     msg.message || "Connection closed due to invalid message.",
                 );
                 if (msg.link_action == "goto_default_page") {
-                    console.log("Returning to default page as instructed");
                     localStorage.clear("currentPageId");
                     localStorage.clear("currentNotebookId");
                     window.location.href = "/";
@@ -42,7 +41,7 @@ export class PageNetHandler {
                 if (msg.hash) {
                     const localHash = this.pageRef.current.getLocalHash();
                     if (localHash !== msg.hash) {
-                        console.log(
+                        console.warn(
                             "Hash mismatch after handling message, requesting full resync",
                         );
                         this.requestFullResync();
@@ -51,7 +50,7 @@ export class PageNetHandler {
             } catch (e) {
                 console.error("Error handling ws message for local editor:", e);
                 if (msg.type !== "full_sync") {
-                    console.log("Requesting full resync due to error");
+                    console.warn("Requesting full resync due to error");
                     this.requestFullResync();
                 }
             }

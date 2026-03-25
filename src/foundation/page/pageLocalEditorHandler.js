@@ -59,7 +59,6 @@ export function handleLocalRequest(page, ws, msg, pageNetHandler) {
             content,
         }).throwErrorIfInvalid();
         page.applyFullSync(structure, content);
-        console.log("Received full sync to local editor");
         page.triggerStructureRerender();
     } else if (msg.type === "initial_page_data") {
         const { metadata, structure, content } = msg;

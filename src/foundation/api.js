@@ -32,7 +32,7 @@ export async function tryFetchApi(endpoint, body = null, options = {}, suppressA
     try {
         return await fetchApi(endpoint, body, options, suppressAlert);
     } catch (error) {
-        console.log("API call failed (soft-fail, returning null):", error);
+        console.warn("API call failed (soft-fail, returning null):", error);
         return null;
     }
 }

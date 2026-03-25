@@ -23,19 +23,11 @@ function trySubmitCreateAccountInfo(displayName, jwt) {
         return;
     }
 
-    console.log(
-        "Submitting create account with display name:",
-        displayNameValue,
-        "and JWT:",
-        jwt,
-    );
-
     tryFetchApi("create_account", {
         display_name: displayNameValue,
         credential: jwt,
     })
         ?.then((response) => {
-            console.log("Account created successfully:", response);
             window.location.href = "/";
         })
         .catch((errorResponse) => {
@@ -50,8 +42,8 @@ function BuildPage() {
 
     //If not present, send to get account
     if (!googleJWT) {
-        console.log(
-            "No google JWT found from the create account page, redirecting to /get_account",
+        alert(
+            "No google login found from the create account page"
         );
         window.location.href = "/get_account";
         return null;

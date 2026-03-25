@@ -16,14 +16,12 @@ async function useGoogleAccountForLoginOrSignup(credentialResponse) {
     }
 
     if (!response.exists && response.link_action === "go_to_signup") {
-        console.log("No account found, going to signup");
         //Store credential in sessionStorage for the onboarding process
         sessionStorage.setItem("google_jwt", credential);
         window.location.href = "/create_account";
         return;
     }
     if (response.exists) {
-        console.log("Account found");
         window.location.href = "/"; //Logged in, go to main app
         return;
     }
@@ -37,7 +35,7 @@ function BuildPage() {
             <GoogleLogin
                 onSuccess={useGoogleAccountForLoginOrSignup}
                 onError={() => {
-                    console.log("Login Failed");
+                    alert("Google login failed, please try again.");
                 }}
             />
         </FlexCenter>
