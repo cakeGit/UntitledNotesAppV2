@@ -4,8 +4,17 @@ import { FlashcardTreeView } from "./view/treeView.jsx";
 import "./style.css";
 
 function BuildPage() {
+    //Get URL param notebookId
+    const urlParams = new URLSearchParams(window.location.search);
+    const notebookId = urlParams.get("notebookId");
+    if (!notebookId) {
+        alert("Missing notebook id to show flashcard tree");
+        window.location.href = "/";
+        return <></>;
+    }
+
     const { data, loading, error } = useApi(async () => {
-        return await tryFetchApi("flashcards/get_selectable_pages_and_flashcards", {notebookId: "3ff004a2-3fd3-4b95-b982-4058c3a1a9e2"});
+        return await tryFetchApi("flashcards/get_selectable_pages_and_flashcards", {notebookId});
     });
     if (loading || error || !data) return <></>;
     return <FlashcardTreeView pageTree={data.pageTree} flashcards={data.flashcards}></FlashcardTreeView>;

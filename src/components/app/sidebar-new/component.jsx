@@ -39,7 +39,7 @@ export function AppSideBar({
                 <AppSidebarLineBreak />
                 <div className="app_sidebar_navigation">
                     <Link to="/settings">Settings</Link>
-                    <Link to="/flashcard_tree">Learning Tree</Link>
+                    <Link to={`/flashcard_tree?notebookId=${currentNotebookId}`}>Learning Tree</Link>
                 </div>
                 <AppSidebarLineBreak />
                 <AppSidebarNoteBookSelect currentName={currentNotebookName} currentNotebookId={currentNotebookId} />
