@@ -26,7 +26,7 @@ export class LengthCondition extends ValidationCondition {
 
     test(data) {
         if (data.length < this.minLength || data.length > this.maxLength) {
-            throw new ValidationException(`must have a length between ${this.minLength} and ${this.maxLength} character`);
+            throw new ValidationException(`must have a length between ${this.minLength} and ${this.maxLength} characters`);
         }
     }
 }

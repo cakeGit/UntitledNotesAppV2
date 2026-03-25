@@ -51,7 +51,7 @@
 .app_sidebar_navigation {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 2px;
     align-items: stretch;
     margin: 5px 0;
 }

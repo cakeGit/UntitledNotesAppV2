@@ -23,6 +23,10 @@
     background-color: white;
 }
 
+.notebook_structure_container {
+    margin: 2px 0;
+}
+
 .page_structure_drag_button:hover, .page_structure_drag_button_open {
     opacity: 1;
 }

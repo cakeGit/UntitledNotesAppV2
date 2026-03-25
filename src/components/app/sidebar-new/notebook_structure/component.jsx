@@ -350,7 +350,7 @@ export function NotebookStructureView({ notebookId, setSidebarLock }) {
     );
 
     return (
-        <>
+        <div className = "notebook_structure_container">
             <NotebookStructureLevel
                 key={rerenderKey}
                 structure={notebookStructure?.children}
@@ -376,6 +376,6 @@ export function NotebookStructureView({ notebookId, setSidebarLock }) {
                 </button>
             </div>
             {modalHook.render()}
-        </>
+        </div>
     );
 }
