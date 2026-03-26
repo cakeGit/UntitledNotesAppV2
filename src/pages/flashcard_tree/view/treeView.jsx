@@ -120,8 +120,8 @@ function Grass() {
     return (
         <path
             d={
-                "M -10 0.75 " + //Start
-                "A 20 0.1 0 0 1 10 0.75 " + //Arc to the right
+                "M -10 0.5 " + //Start
+                "A 20 0.1 0 0 1 10 0.5 " + //Arc to the right
                 "L 20 20 " + //Line down a bit
                 "L -20 20 " + //Line back across
                 "Z" //Close path

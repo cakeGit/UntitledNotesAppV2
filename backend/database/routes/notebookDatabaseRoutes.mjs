@@ -107,6 +107,28 @@ export default function notebookDatabaseRoutes(addEndpoint) {
         },
     );
 
+    
+    addEndpoint(
+        "notebook/get_owner_accessible_notebook_name",
+        async (db, message, response) => {
+            let result = await db.get(
+                db.getQueryOrThrow("notebook/get_owner_accessible_notebook_name"),
+                adaptJsObjectToSql({
+                    notebookId: message.notebookId,
+                    userId: message.userId,
+                }),
+            );
+            if (!result) {
+                throw new RequestError(
+                    "User does not have access to the notebook, or it does not exist.",
+                );
+            }
+            return {
+                name: result.Name,
+            };
+        },
+    );
+
     //This must be called after verifying user access to the notebook,
     //Since this is expected to return a value always (by the active element system)
     addEndpoint(
@@ -170,8 +192,6 @@ export default function notebookDatabaseRoutes(addEndpoint) {
 
     //The user id requirement here ensures only the owner can delete the notebook
     addEndpoint("notebook/delete_notebook", async (db, message, response) => {
-        //Cannot hard-require notebook ownership here since the page deletion query needs to run regardless.
-        //SO, just to double check, the notebook owner specific query is done. Owner access should already be checked.
         const name = await db.get(
             db.getQueryOrThrow("notebook.get_owner_accessible_notebook_name"),
             [getUUIDBlob(message.notebookId), getUUIDBlob(message.userId)],
@@ -201,6 +221,22 @@ export default function notebookDatabaseRoutes(addEndpoint) {
 
     //The user id requirement here ensures only the owner can rename the notebook
     addEndpoint("notebook/rename_notebook", async (db, message, response) => {
+        const name = await db.get(
+            db.getQueryOrThrow("notebook.get_owner_accessible_notebook_name"),
+            [getUUIDBlob(message.notebookId), getUUIDBlob(message.userId)],
+        );
+        logDb(
+            "User",
+            message.userId,
+            "is attempting to delete notebook",
+            message.notebookId,
+        );
+        if (!name) {
+            throw new RequestError(
+                "User does not have permission to delete this notebook, or it does not exist.",
+            );
+        }
+
         await db.run(db.getQueryOrThrow("notebook.rename_notebook"), [
             message.newName,
             getUUIDBlob(message.notebookId),
