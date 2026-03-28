@@ -4,7 +4,10 @@ import { useTargetableSubcomponentContainer } from "../foundation/useTargetableS
 import { AppLineBreak } from "../../app/line_break/component.jsx";
 import { DeleteBlockOperation } from "../../../../backend/web/foundation_safe/page/pageOperations.js";
 import DOMPurify from "dompurify";
-import { onBlurTextAdditionalStyles, onKeyDownForTextAdditionalStyles } from "./textAdditionalStyleHelper.jsx";
+import {
+    onBlurTextAdditionalStyles,
+    onKeyDownForTextAdditionalStyles,
+} from "./textAdditionalStyleHelper.jsx";
 let textRenderAutofocusId = null; //Used to make the next time a text block renders of this id to focus the box
 
 export function PageTextBlock({ blockId, data, pageRef, children, blockRef }) {
@@ -31,10 +34,15 @@ export function PageTextBlock({ blockId, data, pageRef, children, blockRef }) {
     }
 
     function handleNewlineSplit(newTextContent) {
-        const lines = newTextContent.split(/\n+/g);
+        const lines = newTextContent
+            .split(/((\n)|(<br>))+/g)
+            .filter((line) => line !== "\n" && line !== "<br>" && line !== undefined);
 
         //If there is nothing to split, just clear the newlines from the text
-        if (lines.filter((line) => line.trim() !== "").length === 0) {
+        if (
+            lines.filter((line) => line.trim() !== "")
+                .length === 0
+        ) {
             textInputRef.current.innerText = "";
             pageRef.current.content[blockId].textContent = "";
             pageRef.current.onChange(blockId);
@@ -62,10 +70,21 @@ export function PageTextBlock({ blockId, data, pageRef, children, blockRef }) {
         textRenderAutofocusId = previousBlockId; //Focus the last of the new blocks that were just created
     }
 
+    function handleKeypress(e) {
+        //Replace enter with execCommand('InsertHTML', true, '<br>');
+        if (e.key === "Enter") {
+            document.execCommand("insertHTML", false, "<br>");
+            e.preventDefault();
+            return;
+        }
+    }
+
     function handleTextChanged(e) {
         if (textInputRef.current) {
-            let newHtmlContent = DOMPurify.sanitize(textInputRef.current.innerHTML);
-
+            let newHtmlContent = DOMPurify.sanitize(
+                textInputRef.current.innerHTML,
+            );
+            console.log(newHtmlContent);
             //If they type a +, trigger the add block popover
             if (newHtmlContent.endsWith("+")) {
                 handlePlusShortcut(newHtmlContent);
@@ -73,7 +92,10 @@ export function PageTextBlock({ blockId, data, pageRef, children, blockRef }) {
             }
 
             //If there is a new line, split the block
-            if (newHtmlContent.includes("\n")) {
+            if (
+                newHtmlContent.includes("\n") ||
+                newHtmlContent.includes("<br>")
+            ) {
                 handleNewlineSplit(newHtmlContent);
                 return;
             }
@@ -169,10 +191,9 @@ export function PageTextBlock({ blockId, data, pageRef, children, blockRef }) {
                         }
                         contentEditable
                         onBlur={onBlurTextAdditionalStyles}
-                        onInput={
-                            handleTextChanged
-                        }
+                        onInput={handleTextChanged}
                         onKeyDown={(e) => {
+                            handleKeypress(e);
                             onKeyDownForTextAdditionalStyles(e);
                             handlePotentialDelete(e);
                         }}

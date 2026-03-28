@@ -16,8 +16,7 @@ export function useTargetableSubcomponentContainer(pageRef, blockId, children, c
     return {
         subcontainerRef,
         subcontainerElement: (
-            <div style={{ marginLeft: "20px" }}>
-                {" "}
+            <div style={{ marginLeft: "20px", padding:"2px" }}>
                 <PageBlockSubcontainerComponent
                     forwardedRef={subcontainerRef}
                     parentId={blockId}
