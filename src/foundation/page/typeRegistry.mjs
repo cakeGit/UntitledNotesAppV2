@@ -40,7 +40,7 @@ export const BLOCK_TYPE_REGISTRY = {
             const dueDateA = blockA.dueDate || Number.MAX_SAFE_INTEGER;
             const dueDateB = blockB.dueDate || Number.MAX_SAFE_INTEGER;
             return (
-                (completedA ? -1 : 1) * //Flip the order if completed (at this point they arethe same)
+                (completedA ? -1 : 1) * //Flip the order if completed (at this point they are the same)
                 (dueDateA - dueDateB)
             ); //This doesent have to be +1 or -1, so we can just return the raw difference in time
         },

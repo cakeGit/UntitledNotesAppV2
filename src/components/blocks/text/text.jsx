@@ -84,7 +84,6 @@ export function PageTextBlock({ blockId, data, pageRef, children, blockRef }) {
             let newHtmlContent = DOMPurify.sanitize(
                 textInputRef.current.innerHTML,
             );
-            console.log(newHtmlContent);
             //If they type a +, trigger the add block popover
             if (newHtmlContent.endsWith("+")) {
                 handlePlusShortcut(newHtmlContent);

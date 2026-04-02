@@ -37,7 +37,7 @@ export function CanvasDisplay({ canvasDocumentData }) {
     //Displaying a cavnas snapshot that is empty results in errors, so we use a placeholder instead
     return (!hasCanvasData || isBlankSnapshot(canvasSnapshotData)) ? (
         <div>
-            <MdOutlineDraw />
+            Click to add drawing
         </div>
     ) : (
         <TldrawImage snapshot={{ document: canvasSnapshotData }} />

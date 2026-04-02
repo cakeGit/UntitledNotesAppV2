@@ -27,13 +27,13 @@ function randomRound(value) {
 
 function getIntroducedNewFlashcards(averagePriority, bundleSize) {
     //If bundle size is ever changed, then we linearly scale the introduction,
-    // This formula was written for bundle size 5
-    const scale = bundleSize / 5;
-    if (averagePriority <= 0.7) return randomRound(2 * scale);
+    // This formula was written for bundle size 6
+    const scale = bundleSize / 6;
+    if (averagePriority <= 0.7) return randomRound(3 * scale);
     if (averagePriority >= 1) return 0;
 
     return randomRound(
-        (1 + Math.cos((Math.PI / 0.3) * (averagePriority - 0.7))) * scale,
+        (1 + Math.cos((Math.PI / 0.3) * (averagePriority - 0.7))) * (3 / 2) * scale,
     );
 }
 
@@ -44,7 +44,7 @@ export function getNextFlashcardBundle(
     flashcards,
     includeMultiChoiceData,
     excludeNonTextAnswers,
-    bundleSize = 5,
+    bundleSize = 6,
 ) {
     flashcards = structuredClone(flashcards); //Deep clone to avoid mutating the original data
 

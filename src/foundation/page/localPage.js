@@ -152,10 +152,6 @@ export class LocalPage extends MutablePage {
         this.subcontainers = validContainers;
     }
 
-    /**
-     * The primary container is always included, where the containing blockId is undefined.
-     * @returns List in the form {element: HTMLElement, blockId: string (undefined for primary container)}
-     */
     getTargetableContainers(blockId) {
         this.revalidateSubcontainers();
 
@@ -169,8 +165,8 @@ export class LocalPage extends MutablePage {
                 .filter((c) => c.canTarget())
                 .filter(
                     (c) =>
-                        currentBlockContainerType === undefined ||
-                        c.containerType === currentBlockContainerType,
+                        currentBlockContainerType == undefined && c.containerType == undefined ||
+                        c.containerType == currentBlockContainerType
                 )
                 .map((c) => ({ element: c.ref.current, blockId: c.blockId })),
         ];

@@ -5,7 +5,7 @@ export function PageAssignmentsContainerBlock({
     data,
     pageRef,
     children,
-    ref
+    ref,
 }) {
     function addNewAssignment() {
         pageRef.current.createNewBlockInside("assignment", blockId);
@@ -13,10 +13,17 @@ export function PageAssignmentsContainerBlock({
 
     return (
         <div ref={ref} className="assignments_block_container">
-            <div className="assignments_block_content inner_inset_styled_container">{children}</div>
-            <button onClick={addNewAssignment} className="assignment_add_button">
-                +
-            </button>
+            <div className="assignments_block_content inner_inset_styled_container">
+                <div>
+                    {children}
+                    <button
+                        onClick={addNewAssignment}
+                        className="assignment_add_button"
+                    >
+                        + Add Assignment
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }

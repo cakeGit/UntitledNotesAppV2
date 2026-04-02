@@ -4,3 +4,8 @@
 .flashcard_task_compact_text_caption {
     font-size: 0.67em !important;
 }
+
+.flashcard_task_front_display {
+    margin: 0 !important;
+    padding: 0 !important;
+}

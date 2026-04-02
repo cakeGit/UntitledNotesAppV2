@@ -1,17 +1,24 @@
 import { useState } from "react";
-import { FlashcardTaskFrontDisplay } from "../../../components/flashcard/front/component.jsx";
+import { FlashcardFullDisplay } from "../../../components/flashcard/generic_full_display/component.jsx";
+import { AppLineBreak } from "../../../components/app/line_break/component.jsx";
 
 export function FlashcardSelfAssessTask({ flashcard, onComplete }) {
-    const [showAnswer, setShowAnswer] = useState(false);//This is the only state needed, determines if show answer has been clicked
+    const [showAnswer, setShowAnswer] = useState(false); //This is the only state needed, determines if show answer has been clicked
     if (!flashcard) return <></>;
     return (
         <div className="flashcard_task">
-            <FlashcardTaskFrontDisplay flashcard={flashcard} /> {/*Show front of flashcard*/}
+            <FlashcardFullDisplay flashcard={flashcard} side="front" />{" "}
+            {/*Show front of flashcard*/}
             {showAnswer && (
-                //The back is shown but only after user clicks "Show Answer"
-                <div className="flashcard_back">
-                    <p>{flashcard.backText}</p>
-                </div>
+                <>
+                    <AppLineBreak />
+                    {/* The back is shown but only after user clicks "Show Answer" */}
+                    <FlashcardFullDisplay
+                        flashcard={flashcard}
+                        side="back"
+                        style="compact"
+                    />
+                </>
             )}
             {!showAnswer ? (
                 <button onClick={() => setShowAnswer(true)}>Show Answer</button>

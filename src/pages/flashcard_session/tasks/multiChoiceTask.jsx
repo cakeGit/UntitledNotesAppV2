@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { FlashcardTaskFrontDisplay } from "../../../components/flashcard/front/component.jsx";
+import { FlashcardFullDisplay } from "../../../components/flashcard/generic_full_display/component.jsx";
 
 function FlashcardMultichoiceOption({
     flashcard,
@@ -24,7 +25,7 @@ function FlashcardMultichoiceOption({
             onClick={handleClick}
             disabled={submittedIndex !== null}
         >
-            {option.backText}
+            <FlashcardFullDisplay flashcard={option} side="back" style="compact" />
         </button>
     );
 }
@@ -47,6 +48,7 @@ export function FlashcardMultiChoiceTask({ flashcard, onComplete }) {
     return (
         <div className="flashcard_task">
             <FlashcardTaskFrontDisplay flashcard={flashcard} />
+            <br/>
             <div>
                 <div className="multichoice_option_row">
                     <FlashcardMultichoiceOption

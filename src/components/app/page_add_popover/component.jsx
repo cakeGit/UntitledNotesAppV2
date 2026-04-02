@@ -126,6 +126,7 @@ export function PageAddBlockPopover({ pageRef }) {
         );
         pageModalRef.current.style.display = "none";
         inputRef.current.value = "";
+        closeWithoutAddRef.current = null;
     }
 
     //Close the popover, just hide it

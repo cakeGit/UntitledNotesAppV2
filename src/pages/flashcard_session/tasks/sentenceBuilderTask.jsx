@@ -21,7 +21,7 @@ function BuilderDragTarget({ targets, index }) {
     });
     return (
         <div ref={thisRef} className="sentence_builder_drag_target">
-            <div></div>{" "}
+            <div></div>
             {/* Empty div for styling when this target is hovered */}
         </div>
     );

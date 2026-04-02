@@ -37,15 +37,17 @@ export function PageResourceBlock({ blockId, data, pageRef, blockRef }) {
     if (!url) {
         //Exit early due to different structure when there is no URL
         return (
-            <div
-                ref={blockRef}
-                className="resource_block resource_block_empty"
-                onClick={openUrlModal}
-            >
+            <>
                 {modalHook.render()}
-                <FaLink className="resource_block_icon" />
-                Click to add hyperlink
-            </div>
+                <div
+                    ref={blockRef}
+                    className="resource_block resource_block_empty"
+                    onClick={openUrlModal}
+                >
+                    <FaLink className="resource_block_icon" />
+                    Click to add hyperlink
+                </div>
+            </>
         );
     }
 

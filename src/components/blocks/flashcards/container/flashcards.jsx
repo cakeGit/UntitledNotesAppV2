@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useTargetableSubcomponentContainer } from "../../foundation/useTargetableSubcomponentContainer.jsx";
 import "./flashcards.css";
 import { FlexCenter } from "../../../app/flex_center/component.jsx";
 import { AppLineBreak } from "../../../app/line_break/component.jsx";
+import { useTargetableSubcomponentContainer } from "../../foundation/useTargetableSubcomponentContainer.jsx";
 
 export function PageFlashcardsBlock({ blockId, data, pageRef, children, blockRef }) {
     const { subcontainerElement } = useTargetableSubcomponentContainer(

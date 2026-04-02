@@ -116,6 +116,7 @@ function BuildPage() {
         activeFlashcardBundleRef.current = getNextFlashcardBundleSafe(
             data,
             includeMultiChoiceData,
+            excludeNonTextAnswers,
         );
         setActiveFlashcard(activeFlashcardBundleRef.current[0]);
     }
@@ -158,6 +159,7 @@ function BuildPage() {
             activeFlashcardBundleRef.current = getNextFlashcardBundleSafe(
                 data,
                 includeMultiChoiceData,
+                excludeNonTextAnswers,
             );
         }
 
