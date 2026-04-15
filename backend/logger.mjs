@@ -11,14 +11,22 @@ const ansiReset = "\u001b[0m";
 
 //Evil hack from stack overflow to track how many lines have been printed to the terminal
 let globalScrollOffset = 0;
+let virtualCursorRow = 1; // tracks approximate cursor row to detect real scrolls
 
 // Intercept all terminal output to track line counts
 const originalWrite = process.stdout.write.bind(process.stdout);
 process.stdout.write = (chunk, encoding, callback) => {
     const s = typeof chunk === "string" ? chunk : chunk.toString();
-    // Count newlines in the chunk to detect how much the screen has scrolled
+    // Only count newlines that actually scroll the terminal (cursor already at bottom row)
     const lines = (s.match(/\n/g) || []).length;
-    globalScrollOffset += lines;
+    const termHeight = term.height || process.stdout.rows || 24;
+    for (let i = 0; i < lines; i++) {
+        if (virtualCursorRow >= termHeight) {
+            globalScrollOffset++; // real scroll event
+        } else {
+            virtualCursorRow++;
+        }
+    }
     return originalWrite(chunk, encoding, callback);
 };
 //End of evil hack
@@ -58,12 +66,13 @@ async function logWithBlinker(
         delete blinkers[group];
     }
 
-    // Get current position once and track relative to scroll offset
     const startScreenY = await getCurrentScreenY();
+    // Sync virtual cursor to ground truth before logging
+    virtualCursorRow = startScreenY;
     const trackScroll = globalScrollOffset;
 
     let timestamp = new Date().toISOString();
-    //Log normally first
+    // Log normally
     log(color, group, message, true, timestamp);
 
     blinkers[group] = {
@@ -215,6 +224,15 @@ export function setupWorkerListener(worker) {
                 blinkerColor: message.blinkerColor || "bgRed",
             });
             setTimeout(processQueue, 0);
+        } else if (message.type === "log_db_index") {
+            logQueue.push({
+                group: "DB/INDEX",
+                color: "brightMagenta",
+                content: message.content,
+                blinker: message.blinker,
+                blinkerColor: message.blinkerColor || "bgRed",
+            });
+            setTimeout(processQueue, 0);
         }
     });
 }
@@ -224,6 +242,13 @@ export function logDb(message) {
     var content = collectContent(message, arguments);
     process.send({ type: "log_db", content: content });
 }
+
+export function logDbIndex(message) {
+    //Put together the string to send to main process via IPC to avoid race condition
+    var content = collectContent(message, arguments);
+    process.send({ type: "log_db_index", content: content });
+}
+
 
 export async function logWeb(message) {
     //Put together the string but just for the queue to avoid race condition
@@ -241,8 +266,24 @@ export async function logWeb(message) {
     );
 }
 
+export async function logWebIndex(message) {
+    //Put together the string but just for the queue to avoid race condition
+    var content = collectContent(message, arguments);
+    logQueue.push({
+        group: "WEB/INDEX",
+        color: "brightBlue",
+        content: content,
+    });
+    return new Promise((resolve, reject) =>
+        setTimeout(() => {
+            processQueue();
+            resolve();
+        }, 0)
+    );
+}
+
 export async function logEditor(message) {
-    //Put together the string but just for the queue to avoid
+    //Put together the string but just for the queue to avoid race condition
     var content = collectContent(message, arguments);
     logQueue.push({
         group: "EDITOR",

@@ -9,7 +9,7 @@ async function setup(databaseWorker) {
         "Setup invoked, binding listener to wait for database worker to be ready before web setup..."
     );
 
-    let clusterMessageHandler = (worker, message) => {};
+    let clusterMessageHandler = (worker, message) => { };
 
     databaseWorker.on("message", (message) => {
         clusterMessageHandler(message);
@@ -56,10 +56,10 @@ async function setup(databaseWorker) {
                     const error = message.requestError
                         ? new RequestError(errorMessage, errorEffect)
                         : new Error(
-                              "Internal error" + errorMessage
-                                  ? ": " + errorMessage
-                                  : ""
-                          );
+                            "Internal error" + errorMessage
+                                ? ": " + errorMessage
+                                : ""
+                        );
                     const invokingError = new Error();
                     invokingError.stack = requestToComplete.stack;
                     error.cause = invokingError;
@@ -78,7 +78,7 @@ async function setup(databaseWorker) {
                 );
                 clusterMessageHandler = handleDatabaseResponse;
                 dbInterface = new DbInterface(databaseWorker);
-                logClus("PRIMARY/DB_INTERFACE", "Setting up main web...");
+                logClus("PRIMARY/DB_INTERFACE", "Ending dbInterface setup routine...");
                 resolve();
             }
         };

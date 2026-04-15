@@ -1,5 +1,5 @@
 import express from 'express';
-import { logWeb, logWebWithGoodNewsBlinker } from '../logger.mjs';
+import { logWeb, logWebIndex, logWebWithGoodNewsBlinker } from '../logger.mjs';
 import ViteExpress from "vite-express";
 import { apiRouter } from './webApiRoutes.mjs';
 import cookieParser from 'cookie-parser';
@@ -9,7 +9,7 @@ import { addNotebookStructureEditorRouterEndpoint } from './structure_editor/not
 import { serverStartTime } from '../index.js';
 import { imageRoute } from './imageRoute.mjs';
 
-logWeb("Web index.js loaded, starting web server...");
+logWebIndex("Web module loaded, starting web server...");
 
 const app = express();
 expressWs(app); //Extend with WebSocket support
