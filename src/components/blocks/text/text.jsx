@@ -21,11 +21,11 @@ export function PageTextBlock({ blockId, data, pageRef, children, blockRef }) {
 
     function handlePlusShortcut(newTextContent) {
         let removedPlus = newTextContent.slice(0, -1);
-        textInputRef.current.innerText = removedPlus;
+        textInputRef.current.innerHTML = removedPlus;
         pageRef.current.openAddBlockPopover(blockId, blockRef, () => {
             //On blur / they exit from the add block popover, put the text (with +) back
             if (textInputRef.current) {
-                textInputRef.current.innerText = newTextContent;
+                textInputRef.current.innerHTML = newTextContent;
                 pageRef.current.content[blockId].textContent = newTextContent;
                 pageRef.current.onChange(blockId);
             }
@@ -43,14 +43,14 @@ export function PageTextBlock({ blockId, data, pageRef, children, blockRef }) {
             lines.filter((line) => line.trim() !== "")
                 .length === 0
         ) {
-            textInputRef.current.innerText = "";
+            textInputRef.current.innerHTML = "";
             pageRef.current.content[blockId].textContent = "";
             pageRef.current.onChange(blockId);
             return;
         }
 
         //Update the current block to be the first line
-        textInputRef.current.innerText = lines[0];
+        textInputRef.current.innerHTML = lines[0];
         pageRef.current.content[blockId].textContent = lines[0];
         pageRef.current.onChange(blockId);
 

@@ -10,7 +10,7 @@ import { FlexCenter } from "../../components/app/flex_center/component.jsx";
 //This validator is used to validate display name input, same as the server
 const VALID_DISPLAY_NAME_VALIDATOR = new Validator("Display name")
     .notNull()
-    .lengthBetween(1, 30)
+    .lengthBetween(1, 15)
     .hasNameLikeCharsOnly();
 
 //Try to submit the create account info to the server, will make an alert on failure

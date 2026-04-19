@@ -136,6 +136,7 @@ export function FlashcardSentenceBuilderTask({ flashcard, onComplete }) {
         <div className="flashcard_task">
             {/* Show front of flashcard */}
             <FlashcardTaskFrontDisplay flashcard={flashcard} />
+            <br/>
             <FlexCenter>
                 <div
                     className={`sentence_part_container sentence_builder ${showAnswer ? (wasAnswerCorrect.current ? "sentence_builder_correct_answer" : "sentence_builder_incorrect_answer") : ""}`}

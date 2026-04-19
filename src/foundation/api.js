@@ -17,7 +17,7 @@ export async function fetchApiCached(endpoint, body = null, options = {}) {
     if (cachedFetches[cacheKey]) {
         return cachedFetches[cacheKey];
     }
-    
+
     const fetchPromise = fetchApi(endpoint, body, options);
     cachedFetches[cacheKey] = fetchPromise;
 
@@ -62,7 +62,7 @@ export async function fetchApi(endpoint, body = null, options = {}, suppressAler
                     window.location.href = "/get_account";
                 }
                 var error = new UnsuccessfulResponseError(data);
-                if (!suppressAlert) {
+                if (!suppressAlert && data.error && data.effect !== "needs_new_login") {
                     alert(error.message);
                 }
                 throw error;

@@ -68,26 +68,26 @@ export function addNotebookStructureEditorRouterEndpoint(app) {
                 userId,
             }).throwRequestErrorIfInvalid();
 
-            ACTIVE_NOTEBOOK_STRUCTURE_MANAGER.getOrLoadActiveElementFor(
+            var activeNotebook = await ACTIVE_NOTEBOOK_STRUCTURE_MANAGER.getOrLoadActiveElementFor(
                 notebookId,
                 userId,
-            ).then((activeNotebook) => {
-                activeNotebook.connectClient(ws, userId);
-            });
+            );
+            activeNotebook.connectClient(ws, userId);
         } catch (error) {
             //If the user request was invalid, close the connection with an error message
             if (error instanceof RequestError) {//If it was a request error, we can send a message to the user
                 logEditor(
                     "User request to open structure editor socket failed: " +
-                        error.message,
+                    error.message,
                 );
                 ws.send(//Tell the user the error message and that they should give up on the connection
                     JSON.stringify({
                         type: "invalid_close_connection",
-                        message: error.message,
+                        // message: error.message, Silence message since its already sent
                     }),
                 );
             } else {//Otherwise something went wrong and the error needs to keep going
+                logEditor("Unexpected error from user request to open structure editor socket:", error);
                 throw error;
             }
             ws.close();

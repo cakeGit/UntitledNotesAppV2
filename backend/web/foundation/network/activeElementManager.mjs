@@ -15,7 +15,7 @@ export default class ActiveElementManager {
         //It is assumed that the first argument is the unique key, and the rest are loader arguments
 
         //Check the user can access the element before doing anything
-        if (!this.activeElementConnectionPredicate(...arguments))
+        if (!(await this.activeElementConnectionPredicate(...arguments)))
             //A more specific error may be thrown by the predicate
             throw new RequestError(
                 "User is forbidden access to this resource: " + activeElementKey
@@ -49,5 +49,5 @@ export default class ActiveElementManager {
             callback(this.activeElements[key], key);
         }
     }
-    
+
 }

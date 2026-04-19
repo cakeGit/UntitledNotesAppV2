@@ -16,8 +16,6 @@
 .image_block_placeholder {
     height: 250px;
     width: 350px;
-    margin-left: 50%;
-    transform: translateX(-50%);
     border: 2px solid var(--color-border);
     background-color: var(--color-background);
     display: flex;

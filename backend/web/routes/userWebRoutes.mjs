@@ -13,9 +13,9 @@ const googleOAuthClient = new OAuth2Client(clientId);
 
 //Create a validator for when the user is making an account
 const VALID_DISPLAY_NAME_VALIDATOR = new Validator("Display name")
-  .notNull()
-  .lengthBetween(1, 30)
-  .hasNameLikeCharsOnly();
+    .notNull()
+    .lengthBetween(1, 15)
+    .hasNameLikeCharsOnly();
 
 //Get all the user data from the payload string, as well as verify its authenticicity
 async function tryGetCredentialPayload(credential) {
@@ -63,16 +63,16 @@ export default function userRouter(apiRouter) {
         let credentialPayload = await tryGetCredentialPayload(credential);
         let deviceLoginInfo = getDeviceInfoForRequest(req);
         const userId = credentialPayload['sub'];//"Sub" is the unique user id field in google's jwt payload
-        
+
         //Now go ask the database worker to see if this user exists, send it straight back, which will include an auth key if so
-        return await dbInterface.sendRequest("login_to_google_user_if_exists", { googleUserId: userId, deviceInfo: deviceLoginInfo});
+        return await dbInterface.sendRequest("login_to_google_user_if_exists", { googleUserId: userId, deviceInfo: deviceLoginInfo });
     });
 
     apiRouter.for("/create_account", async (req) => {
         let displayName = req.body?.display_name;
-        
+
         VALID_DISPLAY_NAME_VALIDATOR.test(displayName).throwRequestErrorIfInvalid();
-        
+
         let credential = req.body?.credential;
 
         if (!credential) {
